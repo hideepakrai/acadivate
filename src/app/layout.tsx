@@ -4,6 +4,7 @@ import './globals.css';
 import { AppShell } from '@/src/components/layout/AppShell';
 import { Toaster } from 'sonner';
 
+
 export const metadata: Metadata = {
   title: 'Acadivate',
   description: 'Acadivate Research & Innovation Foundation website',
