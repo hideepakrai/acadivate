@@ -23,6 +23,8 @@ const statusConfig: Record<CommentStatus, { color: string; icon: React.ElementTy
 
 export const Marker: React.FC<MarkerProps> = ({ annotation }) => {
   const markerRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const hasDraggedRef = useRef(false);
   const {
     activeAnnotationId,
     setActiveAnnotationId,
@@ -104,22 +106,42 @@ export const Marker: React.FC<MarkerProps> = ({ annotation }) => {
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
-    setIsDragging(true);
-    // Capture pointer to track dragging outside the element
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    hasDraggedRef.current = false;
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !markerRef.current) return;
-    // Update position manually during drag
+    if (!dragStartRef.current || !markerRef.current) return;
+
+    if (!hasDraggedRef.current) {
+      const deltaX = Math.abs(e.clientX - dragStartRef.current.x);
+      const deltaY = Math.abs(e.clientY - dragStartRef.current.y);
+
+      if (deltaX < 4 && deltaY < 4) {
+        return;
+      }
+
+      hasDraggedRef.current = true;
+      setIsDragging(true);
+    }
+
     markerRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (!isDragging || !markerRef.current) return;
     e.stopPropagation();
-    setIsDragging(false);
     e.currentTarget.releasePointerCapture(e.pointerId);
+
+    if (!hasDraggedRef.current || !markerRef.current) {
+      dragStartRef.current = null;
+      hasDraggedRef.current = false;
+      return;
+    }
+
+    setIsDragging(false);
+    dragStartRef.current = null;
+    hasDraggedRef.current = false;
 
     // Temporarily hide marker to find the element underneath
     markerRef.current.style.display = 'none';
@@ -149,10 +171,10 @@ export const Marker: React.FC<MarkerProps> = ({ annotation }) => {
           commentData: updatedData
         })).unwrap();
         setActiveAnnotationId(annotationKey);
-        toast.success('Annotation updated successfully');
+        toast.success('comments updated successfully');
       } catch (error) {
-        console.error('Failed to update annotation in Redux:', error);
-        toast.error('Failed to update annotation');
+        console.error('Failed to update comments in Redux:', error);
+        toast.error('Failed to update comments');
       }
     }
   };
@@ -174,10 +196,10 @@ export const Marker: React.FC<MarkerProps> = ({ annotation }) => {
       }
       removeAnnotation(annotationKey);
       setActiveAnnotationId(null);
-      toast.success('Annotation deleted successfully');
+      toast.success('comments deleted successfully');
     } catch (error) {
-      console.error('Failed to delete annotation:', error);
-      toast.error('Failed to delete annotation');
+      console.error('Failed to delete comments:', error);
+      toast.error('Failed to delete comments');
     }
   };
 
@@ -196,7 +218,7 @@ export const Marker: React.FC<MarkerProps> = ({ annotation }) => {
         className={`absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center text-white transition-transform ${isActive ? `${config.color.split(' ')[0]} scale-110 ring-4 ${config.color.split(' ')[1]}` : `${config.color.split(' ')[0]} hover:scale-110`
           } ${isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'}`}
         onClick={(e) => {
-          if (isDragging) return;
+          if (hasDraggedRef.current) return;
           e.stopPropagation();
           setActiveAnnotationId(isActive ? null : annotationKey);
         }}
