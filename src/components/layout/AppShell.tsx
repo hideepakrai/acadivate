@@ -16,6 +16,7 @@ import CommentTop from '../annotationPlugin/CommentTop';
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDashboardRoute = pathname?.startsWith('/dashboard');
+  const isAuthRoute = pathname?.startsWith('/auth') || pathname === '/kalpadmin';
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -38,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
     <Provider store={store}>
-      {isDashboardRoute ? (
+      {isDashboardRoute || isAuthRoute ? (
         <div className="relative min-h-screen">{children}</div>
       ) : (
         <>

@@ -2,7 +2,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/src/hook/store'
-import LoginForm from '@/src/components/auth/login/LoginForm'
+import LoginHome from '@/src/components/auth/login/LoginHome'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -11,11 +11,13 @@ const page = () => {
     const router= useRouter()
     useEffect(()=>{
         if(isAuthenticated){
-            router.push("/")
+            router.push("/dashboard")
         }
-    },[isAuthenticated])
+    },[isAuthenticated, router])
   return (
-   !isAuthenticated && <LoginForm />
+   !isAuthenticated && <LoginHome 
+      isadmin={true}
+   />
   )
 }
 
