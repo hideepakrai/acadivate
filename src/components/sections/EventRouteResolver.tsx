@@ -8,6 +8,7 @@ import { InternationalConferences } from '@/src/pages/InternationalConferences';
 import { UpcomingEvents } from '@/src/pages/UpcomingEvents';
 
 export function EventRouteResolver({ slug }: { slug: string }) {
+  console.log("EventRouteResolver", slug)
   switch (slug) {
     case 'icas-2026':
       return <EventDetails />;

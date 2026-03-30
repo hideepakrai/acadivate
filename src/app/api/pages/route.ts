@@ -3,6 +3,7 @@ import clientPromise from "@/src/lib/mongodb";
 
 //get all pages
 export async function GET(req: NextRequest) {
+    console.log("API: GET /api/pages called");
     try {
         const client = await clientPromise;
         const db = client.db("kalp_tenant_acadivate");

@@ -7,10 +7,10 @@ import { AnnoatationpluginHome } from '../components/annotationPlugin/Annoatatio
 
 
 
-export const metadata: Metadata = {
-  title: 'Acadivate',
-  description: 'Acadivate Research & Innovation Foundation website',
-};
+// export const metadata: Metadata = {
+//   title: 'Acadivate',
+//   description: 'Acadivate Research & Innovation Foundation website',
+// };
 
 export default function RootLayout({
   children,
