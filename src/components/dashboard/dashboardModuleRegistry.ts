@@ -42,6 +42,18 @@ import {
   fetchCategoriesThunk,
   updateCategoryThunk,
 } from '@/src/hook/categories/categoryThunk';
+import {
+  createRegistrationThunk,
+  deleteRegistrationThunk,
+  fetchRegistrationsThunk,
+  updateRegistrationThunk,
+} from '@/src/hook/registrations/registrationThunk';
+import {
+  createSliderThunk,
+  deleteSliderThunk,
+  fetchSlidersThunk,
+  updateSliderThunk,
+} from '@/src/hook/sliders/sliderThunk';
 
 type AnyRecord = {
   _id?: string;
@@ -137,6 +149,8 @@ function mapLeadRecordToRow(record: AnyRecord): DashboardModuleRow {
     values: {
       name: lead.name ?? '',
       email: lead.email ?? '',
+      phoneNumber: lead.phoneNumber ?? '',
+      institution: lead.institution ?? '',
       source: lead.source ?? '',
       subject: lead.subject ?? '',
       status: lead.status ?? '',
@@ -149,14 +163,19 @@ function mapNominationRecordToRow(record: AnyRecord): DashboardModuleRow {
   const nomination = record as unknown as NominationRecord;
 
   return {
-    id: String(nomination._id ?? nomination.nomineeName ?? nomination.award ?? 'nomination'),
+    id: String(nomination._id ?? nomination.nomineeFirstName ?? nomination.nomineeLastName ?? nomination.award ?? 'nomination'),
     values: {
-      nomineeName: nomination.nomineeName ?? '',
+      nomineeFirstName: nomination.nomineeFirstName ?? '',
+      nomineeLastName: nomination.nomineeLastName ?? '',
+      nomineeEmail: nomination.nomineeEmail ?? '',
       award: nomination.award ?? '',
       category: nomination.category ?? '',
-      submittedOn: nomination.submittedOn ?? '',
+      voting: nomination.voting ?? '',
+      source: nomination.source ?? '',
+      narrative: nomination.narrative ?? '',
+      roles: nomination.roles ?? '',
+      education: nomination.education ?? '',
       status: nomination.status ?? '',
-      note: nomination.note ?? '',
     },
   };
 }
@@ -172,6 +191,34 @@ function mapCategoryRecordToRow(record: AnyRecord): DashboardModuleRow {
       tags: category.tags ?? '',
       count: category.count ?? '',
       color: category.color ?? '',
+    },
+  };
+}
+
+function mapRegistrationRecordToRow(record: AnyRecord): DashboardModuleRow {
+  return {
+    id: String(record._id ?? record.email ?? 'registration'),
+    values: {
+      fullName: String(record.fullName ?? ''),
+      email: String(record.email ?? ''),
+      phoneNumber: String(record.phoneNumber ?? ''),
+      role: String(record.role ?? ''),
+      status: String(record.status ?? 'Pending'),
+    },
+  };
+}
+
+function mapSliderRecordToRow(record: AnyRecord): DashboardModuleRow {
+  return {
+    id: String(record._id ?? record.title ?? 'slider'),
+    values: {
+      title: String(record.title ?? ''),
+      subtitle: String(record.subtitle ?? ''),
+      imageUrl: String(record.imageUrl ?? ''),
+      linkUrl: String(record.linkUrl ?? ''),
+      order: String(record.order ?? '0'),
+      status: String(record.status ?? 'Active'),
+      description: String(record.description ?? ''),
     },
   };
 }
@@ -198,6 +245,16 @@ export function selectDashboardModuleSnapshot(
       return {
         records: state.categories.allCategory,
         isFetched: state.categories.isFetchedCategory,
+      };
+    case 'registrations':
+      return {
+        records: state.registrations.allRegistration,
+        isFetched: state.registrations.isFetchedRegistration,
+      };
+    case 'sliders':
+      return {
+        records: state.sliders.allSlider,
+        isFetched: state.sliders.isFetchedSlider,
       };
     default:
       return { records: [], isFetched: false };
@@ -253,6 +310,22 @@ export function getDashboardModuleCrud(moduleId: DashboardModuleId): DashboardMo
         updateThunk: updateCategoryThunk as AnyThunk,
         deleteThunk: deleteCategoryThunk as AnyThunk,
         mapRecordToRow: mapCategoryRecordToRow,
+      };
+    case 'registrations':
+      return {
+        fetchAllThunk: fetchRegistrationsThunk as AnyThunk,
+        createThunk: createRegistrationThunk as AnyThunk,
+        updateThunk: updateRegistrationThunk as AnyThunk,
+        deleteThunk: deleteRegistrationThunk as AnyThunk,
+        mapRecordToRow: mapRegistrationRecordToRow,
+      };
+    case 'sliders':
+      return {
+        fetchAllThunk: fetchSlidersThunk as AnyThunk,
+        createThunk: createSliderThunk as AnyThunk,
+        updateThunk: updateSliderThunk as AnyThunk,
+        deleteThunk: deleteSliderThunk as AnyThunk,
+        mapRecordToRow: mapSliderRecordToRow,
       };
     default:
       return {

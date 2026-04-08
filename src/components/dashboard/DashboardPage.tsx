@@ -1,4 +1,9 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/src/hook/hooks';
+import { fetchDashboardStatsThunk } from '@/src/hook/dashboard/dashboardStatsThunk';
 import { ArrowRight, LayoutGrid, Plus, Sparkles } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import {
@@ -21,6 +26,13 @@ const helperNotes = [
 ];
 
 export function DashboardPage() {
+  const dispatch = useAppDispatch();
+  const { stats } = useAppSelector((state) => state.dashboardStats);
+
+  useEffect(() => {
+    dispatch(fetchDashboardStatsThunk());
+  }, [dispatch]);
+
   return (
     <section className="space-y-6">
       <article className="overflow-hidden rounded-[2rem] border border-border-light bg-white shadow-sh-sm">
@@ -64,14 +76,14 @@ export function DashboardPage() {
               {dashboardModuleList.map((module) => (
                 <div
                   key={module.id}
-                  className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm"
+                  className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
                         {module.title}
                       </p>
-                      <p className="mt-2 text-3xl font-black">{module.initialRows.length}</p>
+                      <p className="mt-2 text-3xl font-black">{stats[module.id] ?? module.initialRows.length}</p>
                     </div>
                     <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sh-sm bg-linear-to-r', accentClasses[module.accent])}>
                       <module.icon size={19} />
@@ -117,7 +129,7 @@ export function DashboardPage() {
                 Records
               </p>
               <div className="mt-2 flex items-end gap-3">
-                <span className="text-3xl font-black text-navy">{module.initialRows.length}</span>
+                <span className="text-3xl font-black text-navy">{stats[module.id] ?? module.initialRows.length}</span>
                 <span className="mb-1 text-sm text-text-muted">seeded rows</span>
               </div>
             </div>

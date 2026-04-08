@@ -4,6 +4,8 @@ export interface LeadRecord {
   _id?: string;
   name: string;
   email: string;
+  phoneNumber?: string;
+  institution?: string;
   source: string;
   subject: string;
   status: LeadStatus;

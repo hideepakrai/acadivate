@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { Phone, Mail, MapPin, Send, ShieldCheck, CheckCircle2, MessageSquare, Users, FileText, Globe, ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 export const Contact = () => {
   return (
@@ -94,6 +95,89 @@ const ContactHeroCard = ({ icon, label, value }: { icon: React.ReactNode; label:
 
 const ContactMain = () => {
   const [charCount, setCharCount] = React.useState(0);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [formData, setFormData] = React.useState({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    institution: '',
+    enquiryType: '',
+    message: '',
+    agree: false,
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checkbox = e.target as HTMLInputElement;
+      setFormData(prev => ({ ...prev, [name]: checkbox.checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      if (name === 'message') {
+        setCharCount(value.length);
+      }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.fullName || !formData.email || !formData.enquiryType || !formData.message) {
+      toast.error('Required Fields Missing', {
+        description: 'Please fill in all mandatory fields (*) before submitting.',
+      });
+      return;
+    }
+
+    if (!formData.agree) {
+      toast.error('Privacy Policy', {
+        description: 'Please agree to our privacy policy to proceed.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          institution: formData.institution,
+          subject: formData.enquiryType,
+          note: formData.message,
+          source: 'Contact Form',
+          status: 'New',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit enquiry');
+
+      toast.success('Enquiry Submitted', {
+        description: 'Thank you for reaching out! We will get back to you soon.',
+      });
+
+      // Clear form
+      setFormData({
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        institution: '',
+        enquiryType: '',
+        message: '',
+        agree: false,
+      });
+      setCharCount(0);
+    } catch (error) {
+      toast.error('Submission Failed', {
+        description: 'Something went wrong. Please try again later.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section data-annotate-id="contact-details-section" className="py-24 bg-app-bg relative overflow-hidden">
@@ -160,20 +244,36 @@ const ContactMain = () => {
               Submit your enquiry related to conferences, academic collaboration, research partnerships, or awards.
             </p>
 
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-navy uppercase tracking-wider ml-1">Full Name *</label>
                   <div className="relative">
                     <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={18} />
-                    <input type="text" placeholder="Dr. / Prof. Full Name" className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" />
+                    <input 
+                      type="text" 
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="Dr. / Prof. Full Name" 
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" 
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-navy uppercase tracking-wider ml-1">Email Address *</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={18} />
-                    <input type="email" placeholder="your@institution.edu" className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@institution.edu" 
+                      required
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" 
+                    />
                   </div>
                 </div>
               </div>
@@ -183,26 +283,46 @@ const ContactMain = () => {
                   <label className="text-[11px] font-bold text-navy uppercase tracking-wider ml-1">Phone Number</label>
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={18} />
-                    <input type="tel" placeholder="+91 00000 00000" className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" />
+                    <input 
+                      type="tel" 
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      placeholder="+91 00000 00000" 
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" 
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-navy uppercase tracking-wider ml-1">Institution</label>
                   <div className="relative">
                     <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40" size={18} />
-                    <input type="text" placeholder="University Name" className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" />
+                    <input 
+                      type="text" 
+                      name="institution"
+                      value={formData.institution}
+                      onChange={handleChange}
+                      placeholder="University Name" 
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs" 
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-navy uppercase tracking-wider ml-1">Enquiry Type *</label>
-                <select className="w-full px-5 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs appearance-none">
+                <select 
+                  name="enquiryType"
+                  value={formData.enquiryType}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-5 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all shadow-sh-xs appearance-none"
+                >
                   <option value="">— Select an enquiry type —</option>
-                  <option value="conference">International Conference & Events</option>
-                  <option value="collaboration">Academic Collaboration</option>
-                  <option value="partnership">Research Partnership</option>
-                  <option value="ranking">Rankings & Evaluation</option>
+                  <option value="International Conference & Events">International Conference & Events</option>
+                  <option value="Academic Collaboration">Academic Collaboration</option>
+                  <option value="Research Partnership">Research Partnership</option>
+                  <option value="Rankings & Evaluation">Rankings & Evaluation</option>
                 </select>
               </div>
 
@@ -213,7 +333,10 @@ const ContactMain = () => {
                   <textarea
                     rows={5}
                     maxLength={600}
-                    onChange={(e) => setCharCount(e.target.value.length)}
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
                     placeholder="Describe your enquiry in detail..."
                     className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border-light bg-app-bg focus:border-primary focus:ring-0 outline-none transition-all resize-none shadow-sh-xs"
                   />
@@ -224,14 +347,26 @@ const ContactMain = () => {
               </div>
 
               <div className="flex items-start gap-3 p-5 rounded-2xl bg-app-bg border border-border-light">
-                <input type="checkbox" className="mt-1 w-4 h-4 rounded border-border-light text-primary focus:ring-primary" />
+                <input 
+                  type="checkbox" 
+                  name="agree"
+                  checked={formData.agree}
+                  onChange={handleChange}
+                  className="mt-1 w-4 h-4 rounded border-border-light text-primary focus:ring-primary" 
+                />
                 <label className="text-[13px] text-text-muted leading-relaxed">
                   I agree to Acadivate's <a href="#" className="font-bold text-navy hover:text-gold transition-colors underline underline-offset-4">Privacy Policy</a> and consent to being contacted.
                 </label>
               </div>
 
-              <Button variant="primary" size="lg" className="w-full py-5 text-lg">
-                <Send size={20} /> Submit Enquiry
+              <Button 
+                variant="primary" 
+                size="lg" 
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-5 text-lg"
+              >
+                {isSubmitting ? 'Submitting...' : <><Send size={20} /> Submit Enquiry</>}
               </Button>
             </form>
           </motion.div>

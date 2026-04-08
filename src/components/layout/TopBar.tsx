@@ -1,10 +1,22 @@
 'use client';
 
+import React from 'react';
 import { Phone, Mail } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/src/hook/store';
 
 export const TopBar = () => {
+  const [mounted, setMounted] = React.useState(false);
+  const { user } = useSelector((state: RootState) => state.auth);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
-    <div className="bg-primary py-2 border-b border-white/5 hidden sm:block bg-primary-dark">
+    <div className="bg-primary py-2 border-b border-white/5">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-[11.5px] font-medium text-white">
@@ -25,9 +37,6 @@ export const TopBar = () => {
           <a href="https://wa.me/917218 330037" target="_blank" className="text-[11.5px] font-medium text-white hover:text-white transition-colors">
             WhatsApp 
           </a>
-
-          <a href="/dashboard" className="text-[11.5px] font-medium text-white hover:text-white transition-colors">Admin dashboard</a>
-          
         </div>
       </div>
     </div>

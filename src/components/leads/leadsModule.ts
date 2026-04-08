@@ -29,11 +29,18 @@ export const leadsModule: DashboardModuleConfig = {
       required: true,
     },
     {
-      key: 'source',
-      label: 'Source',
+      key: 'phoneNumber',
+      label: 'Phone Number',
       type: 'text',
-      placeholder: 'Contact form',
-      required: true,
+      placeholder: '+91 00000 00000',
+      required: false,
+    },
+    {
+      key: 'institution',
+      label: 'Institution',
+      type: 'text',
+      placeholder: 'University Name',
+      required: false,
     },
     {
       key: 'subject',
@@ -62,10 +69,11 @@ export const leadsModule: DashboardModuleConfig = {
   columns: [
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
-    { key: 'source', label: 'Source' },
+    { key: 'subject', label: 'Type' },
+    { key: 'phoneNumber', label: 'Phone' },
     { key: 'status', label: 'Status' },
   ],
-  tableTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(0, 0.95fr) minmax(0, 0.85fr)',
+  tableTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.7fr)',
   initialRows: [
     {
       id: '660000000000000000000041',

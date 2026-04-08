@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { 
-  ArrowRight, LogOut, Settings, Bell, ChevronUp, User 
+  ArrowRight, LogOut, Settings, Bell, ChevronUp, User, LayoutGrid
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { dashboardModuleList, dashboardNavItems } from './dashboardModules';
@@ -17,7 +17,15 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const isActive = (href: string) => currentPath === href || currentPath.startsWith(`${href}/`);
+  const isActive = (href: string) => {
+    if (currentPath === href) return true;
+    if (href === '/dashboard' || href === '/dashboard/') return currentPath === '/dashboard' || currentPath === '/dashboard/';
+    
+    // Prevent standard Leads module from highlighting when in the specific Inbox view
+    if (href === '/dashboard/leads' && currentPath === '/dashboard/leads/inbox') return false;
+    
+    return currentPath.startsWith(`${href}/`);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -25,8 +33,8 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
   };
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-72 flex-col border-r border-border-light bg-white lg:flex shrink-0">
-      <div className="flex h-full flex-col px-5 py-6"> {/* Removed overflow-hidden from here */}
+    <aside className="sticky top-0 hidden h-screen w-72 flex-col border-r border-border-light bg-white lg:flex shrink-0 overflow-visible">
+      <div className="flex h-full flex-col px-5 py-6 overflow-visible"> {/* Removed overflow-hidden from here */}
         {/* Sidebar Header */}
         <div className="shrink-0 pb-8">
           <Link href="/" className="flex items-center gap-3">
@@ -41,18 +49,48 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
             </div>
           </Link>
         </div>
-
+ 
         {/* Scrollable Navigation Content */}
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0 overflow-x-visible">
           <div className="space-y-7 pb-4">
-            <div>
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.25em] text-text-subtle">
                 Content Modules
               </p>
               <div className="space-y-2">
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                    currentPath === '/dashboard'
+                      ? 'bg-linear-to-r from-primary-deep via-primary-dark to-primary text-white shadow-sh-md'
+                      : 'text-navy hover:bg-bg-soft'
+                  )}
+                >
+                  <span className="flex items-center gap-3">
+                    <LayoutGrid size={18} className={currentPath === '/dashboard' ? 'text-gold-3' : 'text-primary-dark'} />
+                    <span className="text-sm font-semibold">Dashboard</span>
+                  </span>
+                </Link>
+
+                {/* Leads Inbox - Integrated into Content Modules */}
+                <Link
+                  href="/dashboard/leads/inbox"
+                  className={cn(
+                    'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                    currentPath === '/dashboard/leads/inbox'
+                      ? 'bg-linear-to-r from-primary-deep via-primary-dark to-primary text-white shadow-sh-md'
+                      : 'text-navy hover:bg-bg-soft'
+                  )}
+                >
+                  <span className="flex items-center gap-3">
+                    <LayoutGrid size={18} className={currentPath === '/dashboard/leads/inbox' ? 'text-gold-3' : 'text-primary-dark'} />
+                    <span className="text-sm font-semibold">Leads Inbox</span>
+                  </span>
+                </Link>
+
                 {dashboardNavItems.map((link) => {
                   const active = isActive(link.href);
-
+ 
                   return (
                     <Link
                       key={link.label}
@@ -74,13 +112,12 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
               </div>
             </div>
           </div>
-        </div>
-
+ 
         {/* Fixed User Profile Section at Bottom with Pop-out Dropdown */}
-        <div className="mt-auto shrink-0 pt-6 border-t border-border-light relative">
+        <div className="mt-auto shrink-0 pt-6 border-t border-border-light relative overflow-visible">
           {/* Dropdown Menu - Now Floating to the Right */}
           {isProfileOpen && (
-            <div className="absolute left-[calc(100%+1rem)] bottom-0 w-64 animate-in fade-in slide-in-from-left-4 zoom-in-95 duration-300 z-[100]">
+            <div className="absolute left-[calc(100%+1rem)] bottom-4 w-64 animate-in fade-in slide-in-from-left-4 zoom-in-95 duration-300 z-[999999]">
               <div className="rounded-[2rem] border border-border-light bg-white p-3 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
                 <div className="mb-2 flex items-center gap-3 rounded-2xl bg-bg-soft p-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-sh-sm">

@@ -2,10 +2,16 @@ export type NominationStatus = 'New' | 'Under Review' | 'Shortlisted' | 'Approve
 
 export interface NominationRecord {
   _id?: string;
-  nomineeName: string;
+  nomineeFirstName: string;
+  nomineeLastName: string;
+  nomineeEmail: string;
   award: string;
   category: string;
-  submittedOn: string;
+  voting?: string;
+  source?: string;
+  narrative: string;
+  roles?: string;
+  education?: string;
   status: NominationStatus;
   note?: string;
   createdAt?: string;

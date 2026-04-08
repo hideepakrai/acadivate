@@ -6,6 +6,8 @@ import { nominationsModule } from '../nominations/nominationsModule';
 import { rankingsModule } from '../rankings/rankingsModule';
 import { leadsModule } from '../leads/leadsModule';
 import { categoriesModule } from '../categories/categoriesModule';
+import { registrationsModule } from '../registrations/registrationsModule';
+import { slidersModule } from '../sliders/slidersModule';
 
 export {
   eventsModule,
@@ -14,6 +16,8 @@ export {
   rankingsModule,
   leadsModule,
   categoriesModule,
+  registrationsModule,
+  slidersModule,
 };
 
 export const dashboardModuleList = [
@@ -23,6 +27,8 @@ export const dashboardModuleList = [
   rankingsModule,
   leadsModule,
   categoriesModule,
+  registrationsModule,
+  slidersModule,
 ];
 
 export const dashboardNavItems = dashboardModuleList.map((module) => ({
@@ -40,6 +46,8 @@ export const dashboardRouteSearchPlaceholders: Record<string, string> = {
   '/dashboard/rankings': rankingsModule.searchPlaceholder,
   '/dashboard/leads': leadsModule.searchPlaceholder,
   '/dashboard/categories': categoriesModule.searchPlaceholder,
+  '/dashboard/registrations': registrationsModule.searchPlaceholder,
+  '/dashboard/sliders': slidersModule.searchPlaceholder,
 };
 
 export function resolveDashboardSearchPlaceholder(pathname?: string | null) {
@@ -69,6 +77,14 @@ export function resolveDashboardSearchPlaceholder(pathname?: string | null) {
 
   if (pathname.startsWith('/dashboard/categories')) {
     return categoriesModule.searchPlaceholder;
+  }
+
+  if (pathname.startsWith('/dashboard/registrations')) {
+    return registrationsModule.searchPlaceholder;
+  }
+
+  if (pathname.startsWith('/dashboard/sliders')) {
+    return slidersModule.searchPlaceholder;
   }
 
   return dashboardRouteSearchPlaceholders['/dashboard'];

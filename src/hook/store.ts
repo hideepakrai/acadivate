@@ -8,6 +8,9 @@ import rankingReducer from './rankings/rankingSlice';
 import leadReducer from './leads/leadSlice';
 import nominationReducer from './nominations/nominationSlice';
 import categoryReducer from './categories/categorySlice';
+import registrationReducer from './registrations/registrationSlice';
+import sliderReducer from './sliders/sliderSlice';
+import dashboardStatsReducer from './dashboard/dashboardStatsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +23,9 @@ export const store = configureStore({
     leads: leadReducer,
     nominations: nominationReducer,
     categories: categoryReducer,
+    registrations: registrationReducer,
+    sliders: sliderReducer,
+    dashboardStats: dashboardStatsReducer,
   },
 });
 

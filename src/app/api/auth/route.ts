@@ -13,11 +13,16 @@ export async function POST(req: NextRequest) {
     }
 
     const client = await clientPromise;
-    const db = client.db(); // Uses the DB name from the MONGODB_URI or default
+    const db = client.db('kalp_tenant_acadivate');
     const users = db.collection("users");
 
-    // For now, just find the user to verify connection and collection access
-    const user = await users.findOne({ userName });
+    // Check both userName and email for flexible login
+    const user = await users.findOne({ 
+      $or: [
+        { userName: userName },
+        { email: userName }
+      ]
+    });
 
     if (!user) {
       return NextResponse.json(

@@ -1,7 +1,73 @@
 "use client";
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const RegistrationForm = () => {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phoneNumber: '',
+        email: '',
+        role: 'Student',
+        password: '',
+        confirmPassword: ''
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords do not match!");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/registrations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullName: formData.fullName,
+                    phoneNumber: formData.phoneNumber,
+                    email: formData.email,
+                    role: formData.role,
+                    password: formData.password, // Ideally hashed, but keeping simple as per request
+                    status: 'Pending'
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success("Account created successfully! Admin will review your registration.");
+                setFormData({
+                    fullName: '',
+                    phoneNumber: '',
+                    email: '',
+                    role: 'Student',
+                    password: '',
+                    confirmPassword: ''
+                });
+                // Redirect after a short delay
+                setTimeout(() => router.push('/'), 2000);
+            } else {
+                toast.error(data.error || "Failed to create account");
+            }
+        } catch (error) {
+            console.error("Registration Error:", error);
+            toast.error("An unexpected error occurred. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans">
             <div className="w-full max-w-4xl bg-white shadow-[0_20px_60px_rgba(0,85,141,0.1)] rounded-[2.5rem] overflow-hidden border border-gray-100 flex flex-col md:flex-row">
@@ -36,31 +102,60 @@ const RegistrationForm = () => {
                         <p className="text-gray-400 text-sm mt-1 font-medium">Please enter your details to register.</p>
                     </div>
 
-                    <form className="space-y-6">
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Full Name */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">Full Name *</label>
-                                <input type="text" className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" placeholder="John Doe" required />
+                                <input 
+                                    type="text" 
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange}
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" 
+                                    placeholder="John Doe" 
+                                    required 
+                                />
                             </div>
 
                             {/* Mobile Number */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">Phone Number *</label>
-                                <input type="tel" className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" placeholder="+91 00000 00000" required />
+                                <input 
+                                    type="tel" 
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleChange}
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" 
+                                    placeholder="+91 00000 00000" 
+                                    required 
+                                />
                             </div>
                         </div>
 
                         {/* Email Address */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">Email Address *</label>
-                            <input type="email" className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" placeholder="john@acadivate.com" required />
+                            <input 
+                                type="email" 
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" 
+                                placeholder="john@acadivate.com" 
+                                required 
+                            />
                         </div>
 
                         {/* Category/Role Selection */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">I am a *</label>
-                            <select className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm cursor-pointer">
+                            <select 
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm cursor-pointer"
+                            >
                                 <option>Student</option>
                                 <option>Researcher / Academician</option>
                                 <option>Industry Professional</option>
@@ -72,13 +167,29 @@ const RegistrationForm = () => {
                             {/* Password */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">Password *</label>
-                                <input type="password" className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" placeholder="••••••••" required />
+                                <input 
+                                    type="password" 
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" 
+                                    placeholder="••••••••" 
+                                    required 
+                                />
                             </div>
 
                             {/* Confirm Password */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-[#00558d] uppercase tracking-[0.2em] ml-1">Confirm *</label>
-                                <input type="password" className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" placeholder="••••••••" required />
+                                <input 
+                                    type="password" 
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#00558d] outline-none transition-all shadow-sm text-sm" 
+                                    placeholder="••••••••" 
+                                    required 
+                                />
                             </div>
                         </div>
 
@@ -92,14 +203,18 @@ const RegistrationForm = () => {
 
                         {/* Registration Button - Extra Small & Compact */}
                         <div className="pt-8 flex justify-center">
-                            <button type="submit" className="group relative px-8 py-2.5 bg-[#ff6600] text-white rounded-xl font-black text-xs shadow-[0_8px_30px_rgba(255,102,0,0.15)] hover:shadow-[0_12px_40px_rgba(255,102,0,0.25)] hover:-translate-y-1 transition-all duration-300 overflow-hidden uppercase tracking-[0.2em]">
-                                <span className="relative z-10 text-center">Register Now</span>
+                            <button 
+                                type="submit" 
+                                disabled={isLoading}
+                                className="group relative px-8 py-2.5 bg-[#ff6600] text-white rounded-xl font-black text-xs shadow-[0_8px_30px_rgba(255,102,0,0.15)] hover:shadow-[0_12px_40px_rgba(255,102,0,0.25)] hover:-translate-y-1 transition-all duration-300 overflow-hidden uppercase tracking-[0.2em] disabled:opacity-70"
+                            >
+                                <span className="relative z-10 text-center">{isLoading ? 'Registering...' : 'Register Now'}</span>
                                 <div className="absolute inset-0 bg-[#e65c00] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
                             </button>
                         </div>
 
                         <p className="text-center text-xs font-bold text-gray-400 uppercase mt-4">
-                            Already have an account? <span className="text-[#00558d] cursor-pointer hover:underline">Log in</span>
+                            Already have an account? <span className="text-[#00558d] cursor-pointer hover:underline" onClick={() => router.push('/auth/signin')}>Log in</span>
                         </p>
                     </form>
                 </div>
@@ -108,4 +223,4 @@ const RegistrationForm = () => {
     );
 };
 
-export default RegistrationForm;
+export default RegistrationForm;
