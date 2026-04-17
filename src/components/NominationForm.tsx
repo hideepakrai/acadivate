@@ -55,6 +55,7 @@ const BASE_FEE = 5500;
 const GST_RATE = 0.18;
 const HANDLING_PER_CAT = 500;
 
+
 const NominationForm: React.FC = () => {
   const [formData, setFormData] = useState({
     orgName: '',
@@ -262,6 +263,8 @@ const NominationForm: React.FC = () => {
           </div>
 
           <button type="submit"><i className="fas fa-paper-plane"></i> Submit Nomination</button>
+
+          {/* <button type="submit" onClick={onClose}><i className="fas fa-paper-plane"></i> Close</button> */}
         </form>
       </div>
 
