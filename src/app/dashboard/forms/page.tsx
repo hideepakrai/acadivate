@@ -1,3 +1,5 @@
+import FormHome from "@/src/components/forms/FormHome";
+
 export default function Page() {
   return (
     <div className="flex min-h-[60vh] flex-col justify-center px-6 py-12">
@@ -10,6 +12,7 @@ export default function Page() {
           This section will be used to manage form modules such as nominations, registrations, and other future workflows.
         </p>
       </div>
+      <FormHome />
     </div>
   );
 }
