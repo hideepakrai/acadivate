@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import type {
   NominationCreateInput,
+  NominationFormType,
   NominationRecord,
   NominationUpdateInput,
 } from './nominationType';
@@ -45,13 +46,13 @@ export const fetchNominationsThunk = createAsyncThunk<
 });
 
 export const fetchNominationThunk = createAsyncThunk<
-  NominationRecord,
+  NominationFormType,
   string,
   { rejectValue: string }
 >('nominations/fetchOne', async (id, { rejectWithValue }) => {
   try {
     const response = await fetch(`/api/nominations?id=${encodeURIComponent(id)}`);
-    const data = await parseResponse<{ item?: NominationRecord }>(
+    const data = await parseResponse<{ item?: NominationFormType }>(
       response,
       'Failed to fetch nomination'
     );
@@ -69,8 +70,8 @@ export const fetchNominationThunk = createAsyncThunk<
 });
 
 export const createNominationThunk = createAsyncThunk<
-  NominationRecord,
-  NominationCreateInput,
+  NominationFormType,
+  NominationFormType,
   { rejectValue: string }
 >('nominations/create', async (payload, { rejectWithValue }) => {
   try {
@@ -82,7 +83,7 @@ export const createNominationThunk = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    const data = await parseResponse<{ item?: NominationRecord }>(
+    const data = await parseResponse<{ item?: NominationFormType }>(
       response,
       'Failed to create nomination'
     );
@@ -100,8 +101,8 @@ export const createNominationThunk = createAsyncThunk<
 });
 
 export const updateNominationThunk = createAsyncThunk<
-  NominationRecord,
-  NominationUpdateInput,
+  NominationFormType,
+  NominationFormType,
   { rejectValue: string }
 >('nominations/update', async (payload, { rejectWithValue }) => {
   try {
@@ -113,7 +114,7 @@ export const updateNominationThunk = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    const data = await parseResponse<{ item?: NominationRecord }>(
+    const data = await parseResponse<{ item?: NominationFormType }>(
       response,
       'Failed to update nomination'
     );

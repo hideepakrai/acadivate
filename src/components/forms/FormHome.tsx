@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import { Button } from '../ui/Button'
-import NominationForm from '../NominationForm'
+import NominationForm from './Nomination/NominationForm'
 import { useRouter } from 'next/navigation'
 
 const FormHome = () => {

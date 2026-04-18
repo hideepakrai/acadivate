@@ -1,7 +1,12 @@
 
 "use client";
 import React, { useState, useEffect } from 'react';
+import { Eye, Trash2 } from 'lucide-react';
 import styles from './NominationForm.module.css';
+import { AppDispatch } from '@/src/hook/store';
+import { useDispatch } from 'react-redux';
+import { createNominationThunk } from '@/src/hook/nominations/nominationThunk';
+import { NominationFormType } from '@/src/hook/nominations/nominationType';
 
 const academicAwards = [
   "Life Time Achievement Award (above 55 Years of Age)", "Hon. Fellowship (FAFSRI) (Below 40 Years of Age)", "Eminent Scientist award",
@@ -54,7 +59,7 @@ const entrepreneurAwards = [
 const BASE_FEE = 5500;
 const GST_RATE = 0.18;
 const HANDLING_PER_CAT = 500;
-
+ console.log("academicAwards",academicAwards)
 
 const NominationForm: React.FC = () => {
 
@@ -70,17 +75,19 @@ const NominationForm: React.FC = () => {
     email: '',
     website: '',
     gstin: '',
+    selectedAwards:[],
     paymentMode: 'Online Banking',
     agreeTerms: false,
     researchPublication: [] as File[],
     bookPublication: [] as File[],
     researchProject: [] as File[],
     patentPolicyDocument: [] as File[],
+    status:"pending"
   });
   const [selectedAwards, setSelectedAwards] = useState<string[]>([]);
   const [payableAmount, setPayableAmount] = useState(0);
   const [toast, setToast] = useState({ show: false, message: '', isError: false });
-
+ const dispatch= useDispatch<AppDispatch>()
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -98,6 +105,8 @@ const NominationForm: React.FC = () => {
     }
   };
 
+
+  console.log("formData---",formData)
   // Delete a file from a specific field
   const handleDeleteFile = (field: keyof typeof formData, index: number) => {
     setFormData(prev => ({
@@ -130,9 +139,10 @@ const NominationForm: React.FC = () => {
     setTimeout(() => setToast({ show: false, message: '', isError: false }), 3500);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
+    debugger
     e.preventDefault();
-
+   console.log("submiutetdgdvd")
     const { orgName, promoter, ownership, address, mobile, state, city, email, agreeTerms } = formData;
 
     if (!orgName.trim()) { showToast('Organization name required', true); return; }
@@ -156,18 +166,34 @@ const NominationForm: React.FC = () => {
       return;
     }
 
-    const formDataObj = {
-      ...formData,
-      selectedCategories: selectedAwards,
-      totalAmount: payableAmount,
-      // The following fields are arrays of File objects
-      researchPublication: formData.researchPublication,
-      bookPublication: formData.bookPublication,
-      researchProject: formData.researchProject,
-      patentPolicyDocument: formData.patentPolicyDocument,
+    const formDataObj:NominationFormType = {
+        orgName: formData.orgName,
+    promoter: formData.promoter,
+    ownership: formData.ownership,
+    address: formData.address,
+    mobile: formData.mobile,
+    state: formData.state,
+    city: formData.city,
+    email: formData.email,
+    website: formData.website,
+    gstin: formData.gstin,
+    paymentMode: 'Online Banking',
+    agreeTerms: false,
+    researchPublication: [],
+    bookPublication: [] ,
+    researchProject: [] ,
+    patentPolicyDocument: [],
+    status:"pending"
     };
     console.log('Nomination Submitted:', formDataObj);
-    showToast(`✓ Nomination submitted! Selected ${selectedAwards.length} categories. Total: ₹${payableAmount.toLocaleString('en-IN')}`, false);
+
+    const responce= await dispatch(createNominationThunk(formDataObj)).unwrap()
+    console.log("respeoinse forem national", responce)
+    if(responce.status){
+      showToast(`✓ Nomination submitted! Selected ${selectedAwards.length} categories. Total: ₹${payableAmount.toLocaleString('en-IN')}`, false);
+    }else{
+      showToast(`✗ Nomination submission failed!`, true);
+    }
   };
 
   const renderAwardSection = (title: string, icon: string, awards: string[], gridId: string) => (
@@ -206,7 +232,7 @@ const NominationForm: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className={styles['form-grid']}>
             <div className={`${styles['input-group']} ${styles['full-width']}`}>
-              <label><i className="fas fa-building"></i> Name of the Organization</label>
+              <label><i className="fas fa-building"></i> Name of the Organizatio</label>
               <input type="text" name="orgName" value={formData.orgName} onChange={handleInputChange} placeholder="Enter Organization" required />
             </div>
             <div className={styles['input-group']}>
@@ -264,10 +290,17 @@ const NominationForm: React.FC = () => {
               {formData.researchPublication.length > 0 && (
                 <ul style={{ margin: '0.5rem 0 0 0', padding: 0, listStyle: 'none' }}>
                   {formData.researchPublication.map((file, idx) => (
-                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span>{file.name}</span>
-                      <button type="button" onClick={() => window.open(URL.createObjectURL(file), '_blank')}>View</button>
-                      <button type="button" onClick={() => handleDeleteFile('researchPublication', idx)} style={{ color: 'red' }}>Delete</button>
+                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem', border: '1px solid #b3b3ff', borderRadius: '8px', padding: '0.3rem 0.7rem', background: '#f8faff' }}>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                     
+                        <Eye size={18} color="#222" 
+                         onClick={() => window.open(URL.createObjectURL(file), '_blank')}
+                        />
+                    
+                        <Trash2 size={18} color="red"
+                           onClick={() => handleDeleteFile('researchPublication', idx)}
+                        />
+                     
                     </li>
                   ))}
                 </ul>
@@ -279,10 +312,17 @@ const NominationForm: React.FC = () => {
               {formData.bookPublication.length > 0 && (
                 <ul style={{ margin: '0.5rem 0 0 0', padding: 0, listStyle: 'none' }}>
                   {formData.bookPublication.map((file, idx) => (
-                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span>{file.name}</span>
-                      <button type="button" onClick={() => window.open(URL.createObjectURL(file), '_blank')}>View</button>
-                      <button type="button" onClick={() => handleDeleteFile('bookPublication', idx)} style={{ color: 'red' }}>Delete</button>
+                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem', border: '1px solid #b3b3ff', borderRadius: '8px', padding: '0.3rem 0.7rem', background: '#f8faff' }}>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                     
+                        <Eye size={18} color="#222" 
+                         onClick={() => window.open(URL.createObjectURL(file), '_blank')}/>
+                     
+                     
+                        <Trash2 size={18} color="red" 
+                         onClick={() => handleDeleteFile('bookPublication', idx)}
+                        />
+                    
                     </li>
                   ))}
                 </ul>
@@ -294,10 +334,15 @@ const NominationForm: React.FC = () => {
               {formData.researchProject.length > 0 && (
                 <ul style={{ margin: '0.5rem 0 0 0', padding: 0, listStyle: 'none' }}>
                   {formData.researchProject.map((file, idx) => (
-                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span>{file.name}</span>
-                      <button type="button" onClick={() => window.open(URL.createObjectURL(file), '_blank')}>View</button>
-                      <button type="button" onClick={() => handleDeleteFile('researchProject', idx)} style={{ color: 'red' }}>Delete</button>
+                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem', border: '1px solid #b3b3ff', borderRadius: '8px', padding: '0.3rem 0.7rem', background: '#f8faff' }}>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                     
+                        <Eye size={18} color="#222"  onClick={() => window.open(URL.createObjectURL(file), '_blank')}/>
+                     
+                        <Trash2 size={18} color="red"
+                         onClick={() => handleDeleteFile('researchProject', idx)}
+                        />
+                    
                     </li>
                   ))}
                 </ul>
@@ -309,10 +354,16 @@ const NominationForm: React.FC = () => {
               {formData.patentPolicyDocument.length > 0 && (
                 <ul style={{ margin: '0.5rem 0 0 0', padding: 0, listStyle: 'none' }}>
                   {formData.patentPolicyDocument.map((file, idx) => (
-                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span>{file.name}</span>
-                      <button type="button" onClick={() => window.open(URL.createObjectURL(file), '_blank')}>View</button>
-                      <button type="button" onClick={() => handleDeleteFile('patentPolicyDocument', idx)} style={{ color: 'red' }}>Delete</button>
+                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem', border: '1px solid #b3b3ff', borderRadius: '8px', padding: '0.3rem 0.7rem', background: '#f8faff' }}>
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
+                    
+                        <Eye size={18} color="#222" 
+                         onClick={() => window.open(URL.createObjectURL(file), '_blank')}/>
+                     
+                        <Trash2 size={18} color="red" 
+                         onClick={() => handleDeleteFile('patentPolicyDocument', idx)}
+                        />
+                     
                     </li>
                   ))}
                 </ul>
@@ -321,7 +372,7 @@ const NominationForm: React.FC = () => {
           </div>
 
 
-
+      
 
           {renderAwardSection('Academic and Research Awards', 'fa-graduation-cap', academicAwards, 'academicCatGrid')}
           {renderAwardSection('Start-up Awards', 'fa-rocket', startupAwards, 'startupCatGrid')}
