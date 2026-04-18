@@ -1,5 +1,32 @@
-export type NominationStatus = 'New' | 'Under Review' | 'Shortlisted' | 'Approved' | 'Rejected';
+export type NominationStatus =
+  | "New"
+  | "Under Review"
+  | "Shortlisted"
+  | "Approved"
+  | "Rejected";
 
+export interface NominationFormType {
+  _id?: string;
+  orgName?: string;
+  promoter?: string;
+  ownership?: string;
+  address?: string;
+  mobile?: string;
+  state?: string;
+  city?: string;
+  email?: string;
+  website?: string;
+  gstin?: string;
+  paymentMode?: string;
+  agreeTerms?: Boolean;
+  researchPublication?: string[];
+  bookPublication?: string[];
+  researchProject?: string[];
+  patentPolicyDocument?: string[];
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 export interface NominationRecord {
   _id?: string;
   nomineeFirstName: string;
@@ -18,5 +45,8 @@ export interface NominationRecord {
   updatedAt?: string;
 }
 
-export type NominationCreateInput = Omit<NominationRecord, '_id' | 'createdAt' | 'updatedAt'>;
+export type NominationCreateInput = Omit<
+  NominationRecord,
+  "_id" | "createdAt" | "updatedAt"
+>;
 export type NominationUpdateInput = NominationCreateInput & { _id: string };

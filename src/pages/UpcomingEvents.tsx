@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/src/lib/utils';
 import { Button } from '@/src/components/ui/Button';
+import { useRouter } from 'next/navigation';
 
 const FILTERS = [
   { id: 'all', label: 'All Events' },
@@ -26,7 +27,7 @@ export const UpcomingEvents = ({ includeHiddenEvents = false }: UpcomingEventsPr
   const [loading, setLoading] = React.useState(true);
   const [filter, setFilter] = React.useState('all');
   const [mounted, setMounted] = React.useState(false);
-
+   const router= useRouter()
   React.useEffect(() => {
     setMounted(true);
     const fetchEvents = async () => {
@@ -96,6 +97,9 @@ export const UpcomingEvents = ({ includeHiddenEvents = false }: UpcomingEventsPr
     );
   }
 
+   const handleOpenNomination=()=>{
+     router.push("/nomination-form")
+   }
   return (
     <div className="bg-app-bg">
       {/* --- PREMIUM DARK HERO SECTION --- */}
@@ -272,11 +276,14 @@ export const UpcomingEvents = ({ includeHiddenEvents = false }: UpcomingEventsPr
                   <CountdownUnit value="45" label="Mins" />
                   <CountdownUnit value="08" label="Secs" />
                 </div>
-                <Link href="/nomination-form1" className="block w-full relative z-10">
+                <button  className="block w-full relative z-10"
+                
+                onClick={handleOpenNomination}
+                >
                   <Button variant="gold" className="w-full py-4 rounded-xl shadow-sh-md">
                     Register Now <ArrowRight size={16} />
                   </Button>
-                </Link>
+                </button>
               </div>
             </div>
           </div>
