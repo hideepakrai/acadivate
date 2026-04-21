@@ -1,26 +1,28 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Eye, Trash2 } from "lucide-react";
-import styles from "./NominationForm.module.css";
-import { AppDispatch, RootState } from "@/src/hook/store";
-import { useDispatch, useSelector } from "react-redux";
-import { createNominationThunk } from "@/src/hook/nominations/nominationThunk";
-import { NominationFormType } from "@/src/hook/nominations/nominationType";
-import { useRouter } from "next/navigation";
-import { setCurrentNomination } from "@/src/hook/nominations/nominationSlice";
-import {
-  academicAwards,
-  entrepreneurAwards,
-  riseAwards,
-  startupAwards,
-} from "./util";
-import Script from "next/script";
+import { Eye, FileDown, Trash2 } from "lucide-react";
+import { downloadNominationPDF } from './downloadNominationPDF';
+import styles from './NominationForm.module.css';
+import { AppDispatch, RootState } from '@/src/hook/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { createNominationThunk } from '@/src/hook/nominations/nominationThunk';
+import { NominationFormType } from '@/src/hook/nominations/nominationType';
+import { useRouter } from 'next/navigation';
+import { setCurrentNomination } from '@/src/hook/nominations/nominationSlice';
+import { academicAwards, entrepreneurAwards, riseAwards, startupAwards } from './util';
+import Script from 'next/script';
+import { OrderType } from "../../orders/OrderType";
+
 
 const BASE_FEE = 5500;
 const GST_RATE = 0.18;
 const HANDLING_PER_CAT = 500;
 
-const NominationForm: React.FC = () => {
+interface NominationFormProps {
+  readOnly?: boolean;
+}
+
+const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => {
   const router = useRouter();
   const currentNomination = useSelector(
     (state: RootState) => state.nominations.currentNomination,
@@ -58,6 +60,7 @@ const NominationForm: React.FC = () => {
     message: "",
     isError: false,
   });
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -152,6 +155,7 @@ const NominationForm: React.FC = () => {
   };
 
   const paymentHandler = async (data: NominationFormType) => {
+    console.log("payment start")
     let options: any = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
       amount: `${data?.totalAmount ?? 6990}`, // Amount is in currency subunits.
@@ -159,11 +163,36 @@ const NominationForm: React.FC = () => {
       name: "Acadivate", //your business name
       description: "Test Transaction",
       image: "https://acadivate.com/logo.png",
-      order_id: data.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-      handler: function (response) {
+      order_id: (data as any).order?.id, // Use the order ID returned from server
+      handler: async function (response: any) {
+        console.log("payment success--->", response);
         alert(response.razorpay_payment_id);
         alert(response.razorpay_order_id);
         alert(response.razorpay_signature);
+
+        const orderData: OrderType = {
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id,
+          signature: response.razorpay_signature,
+          amount: data?.totalAmount ?? 0,
+          formId: data._id,
+          status: "success",
+        }
+
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        });
+        const result = await res.json();
+        setLoading(false);
+        if (result.success) {
+          showToast("Payment successful");
+        } else {
+          showToast(result.error, true);
+        }
       },
       prefill: {
         name: data.promoter, //your customer's name
@@ -177,19 +206,20 @@ const NominationForm: React.FC = () => {
         color: "#3399cc",
       },
     };
-
+    console.log("payment start")
+    if (!(window as any).Razorpay) {
+      showToast("Razorpay SDK failed to load. Please check your internet connection.", true);
+      return;
+    }
     var rzp1: any = new (window as any).Razorpay(options);
 
-    rzp1.on("payment.failed", function (response) {
-      alert(response.error.code);
+    rzp1.on("payment.failed", function (response: any) {
+      setLoading(false);
+      console.log("payment failed--->", response);
       alert(response.error.description);
-      alert(response.error.source);
-      alert(response.error.step);
-      alert(response.error.reason);
-      alert(response.error.metadata.order_id);
-      alert(response.error.metadata.payment_id);
     });
     rzp1.open();
+
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -199,54 +229,49 @@ const NominationForm: React.FC = () => {
       return;
     }
 
-    const formDataObj: NominationFormType = {
-      orgName: formData.orgName,
-      promoter: formData.promoter,
-      ownership: formData.ownership,
-      address: formData.address,
-      mobile: formData.mobile,
-      state: formData.state,
-      city: formData.city,
-      email: formData.email,
-      website: formData.website,
-      agreeTerms: formData.agreeTerms,
-      gstin: formData.gstin,
-      paymentMode: formData.paymentMode,
-      // selectedAwards: Object.values(selectedAwards).flat(),
-      academicAwards: selectedAwards.academic,
-      startupAwards: selectedAwards.startup,
-      riseAwards: selectedAwards.rise,
-      entrepreneurAwards: selectedAwards.entrepreneur,
-      researchPublication: [],
-      bookPublication: [],
-      researchProject: [],
-      patentPolicyDocument: [],
-      status: "pending",
-      totalAmount: payableAmount,
-    };
+    setLoading(true);
+    try {
+      const formDataObj: NominationFormType = {
+        orgName: formData.orgName,
+        promoter: formData.promoter,
+        ownership: formData.ownership,
+        address: formData.address,
+        mobile: formData.mobile,
+        state: formData.state,
+        city: formData.city,
+        email: formData.email,
+        website: formData.website,
+        agreeTerms: formData.agreeTerms,
+        gstin: formData.gstin,
+        paymentMode: formData.paymentMode,
+        academicAwards: selectedAwards.academic,
+        startupAwards: selectedAwards.startup,
+        riseAwards: selectedAwards.rise,
+        entrepreneurAwards: selectedAwards.entrepreneur,
+        researchPublication: [],
+        bookPublication: [],
+        researchProject: [],
+        patentPolicyDocument: [],
+        status: "pending",
+        totalAmount: payableAmount,
+      };
 
-    const responce = await dispatch(
-      createNominationThunk(formDataObj),
-    ).unwrap();
-    console.log("response submitted", responce);
-    if (responce.id) {
-      await paymentHandler(responce);
-      //  uploadFiles(
-      //   {
-      //     researchPublication:formData.researchPublication,
-      //     bookPublication:formData.bookPublication,
-      //     researchProject:formData.researchProject,
-      //     patentPolicyDocument:formData.patentPolicyDocument,
-      //     pathName:`/nomination/${responce._id}`
-      //   }
-      // )
-      const totalCount = Object.values(selectedAwards).flat().length;
-      showToast(
-        `✓ Nomination submitted! Selected ${totalCount} categories. Total: ₹${payableAmount.toLocaleString("en-IN")}`,
-        false,
-      );
-    } else {
-      showToast(`✗ Nomination submission failed!`, true);
+      const response = await dispatch(
+        createNominationThunk(formDataObj),
+      ).unwrap();
+      
+      console.log("response submitted", response);
+      if (response._id) {
+        console.log("payment start")
+        await paymentHandler(response);
+      } else {
+        showToast(`✗ Nomination submission failed!`, true);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      showToast("✗ Something went wrong. Please try again.", true);
+      setLoading(false);
     }
   };
 
@@ -299,6 +324,7 @@ const NominationForm: React.FC = () => {
               onChange={(e) =>
                 handleAwardChange(category, award, e.target.checked)
               }
+              disabled={readOnly}
             />
             <label>{award}</label>
           </div>
@@ -306,12 +332,29 @@ const NominationForm: React.FC = () => {
       </div>
     </div>
   );
-  const handleClose = () => {
-    dispatch(setCurrentNomination(null));
-    router.back();
+   const handleClose=()=>{
+    dispatch(setCurrentNomination(null))
+    router.back()
+   }
+
+   const handleDownloadPDF = async () => {
+    // Strip File[] fields – they're not serialisable and not needed in the PDF
+    const { researchPublication, bookPublication, researchProject, patentPolicyDocument, ...rest } = formData;
+    const pdfData = {
+      ...rest,
+      academicAwards: selectedAwards.academic,
+      startupAwards: selectedAwards.startup,
+      riseAwards: selectedAwards.rise,
+      entrepreneurAwards: selectedAwards.entrepreneur,
+      totalAmount: payableAmount || formData.totalAmount,
+    };
+    await downloadNominationPDF(pdfData);
   };
   return (
     <>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+      />
       <div className={styles.container}>
         <div className={styles.hero}>
           <div className={styles["hero-badge"]}>
@@ -351,6 +394,7 @@ const NominationForm: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Enter Organization"
                   required
+                  disabled={readOnly}
                 />
               </div>
               <div className={styles["input-group"]}>
@@ -364,6 +408,7 @@ const NominationForm: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Enter Promoter"
                   required
+                  disabled={readOnly}
                 />
               </div>
               <div className={styles["input-group"]}>
@@ -389,6 +434,7 @@ const NominationForm: React.FC = () => {
                         value={option}
                         checked={formData.ownership === option}
                         onChange={handleInputChange}
+                        disabled={readOnly}
                       />{" "}
                       {option}
                     </label>
@@ -408,6 +454,7 @@ const NominationForm: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Full address"
                   required
+                  disabled={readOnly}
                 ></textarea>
               </div>
               <div className={styles["input-group"]}>
@@ -421,6 +468,7 @@ const NominationForm: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Enter Mobile Number"
                   required
+                  disabled={readOnly}
                 />
               </div>
               <div className={styles["input-group"]}>
@@ -432,6 +480,7 @@ const NominationForm: React.FC = () => {
                   value={formData.state}
                   onChange={handleInputChange}
                   required
+                  disabled={readOnly}
                 >
                   <option value="" disabled>
                     Select State
@@ -456,6 +505,7 @@ const NominationForm: React.FC = () => {
                   value={formData.city}
                   onChange={handleInputChange}
                   required
+                  disabled={readOnly}
                 >
                   <option value="" disabled>
                     Select City
@@ -482,6 +532,7 @@ const NominationForm: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="Enter Email"
                   required
+                  disabled={readOnly}
                 />
               </div>
               <div className={styles["input-group"]}>
@@ -494,6 +545,7 @@ const NominationForm: React.FC = () => {
                   value={formData.website}
                   onChange={handleInputChange}
                   placeholder="Enter Website URL"
+                  disabled={readOnly}
                 />
               </div>
               <div className={styles["input-group"]}>
@@ -506,6 +558,7 @@ const NominationForm: React.FC = () => {
                   value={formData.gstin}
                   onChange={handleInputChange}
                   placeholder="Enter GSTIN"
+                  disabled={readOnly}
                 />
               </div>
               {/* PDF Attachment Fields */}
@@ -520,6 +573,7 @@ const NominationForm: React.FC = () => {
                   accept="application/pdf"
                   multiple
                   onChange={handleInputChange}
+                  disabled={readOnly}
                 />
                 {formData.researchPublication.length > 0 && (
                   <ul
@@ -585,6 +639,7 @@ const NominationForm: React.FC = () => {
                   accept="application/pdf"
                   multiple
                   onChange={handleInputChange}
+                  disabled={readOnly}
                 />
                 {formData.bookPublication.length > 0 && (
                   <ul
@@ -650,6 +705,7 @@ const NominationForm: React.FC = () => {
                   accept="application/pdf"
                   multiple
                   onChange={handleInputChange}
+                  disabled={readOnly}
                 />
                 {formData.researchProject.length > 0 && (
                   <ul
@@ -718,6 +774,7 @@ const NominationForm: React.FC = () => {
                   accept="application/pdf"
                   multiple
                   onChange={handleInputChange}
+                  disabled={readOnly}
                 />
                 {formData.patentPolicyDocument.length > 0 && (
                   <ul
@@ -829,6 +886,7 @@ const NominationForm: React.FC = () => {
                       value={mode}
                       checked={formData.paymentMode === mode}
                       onChange={handleInputChange}
+                      disabled={readOnly}
                     />{" "}
                     {mode}
                   </label>
@@ -843,30 +901,47 @@ const NominationForm: React.FC = () => {
                 checked={formData.agreeTerms}
                 onChange={handleInputChange}
                 required
+                disabled={readOnly}
               />
               <label style={{ textTransform: "none", fontWeight: 500 }}>
                 I agree to Terms & Conditions.
               </label>
             </div>
 
-            <button type="submit">
-              <i className="fas fa-paper-plane"></i> Submit Nominationfff
+          <div className={styles['btn-row']}>
+            {!readOnly && (
+              <button type="submit" className={styles['btn-submit']} disabled={loading}>
+                {loading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> Processing...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane"></i> Submit Nomination
+                  </>
+                )}
+              </button>
+            )}
+
+            <button type="button" className={styles['btn-pdf']} onClick={handleDownloadPDF}>
+              <FileDown size={18} /> Download PDF
             </button>
 
-            <button type="submit" onClick={handleClose}>
-              <i className="fas fa-paper-plane"></i> Close
+            <button type="button" className={styles['btn-close']} onClick={handleClose}>
+              <i className="fas fa-times-circle"></i> Close
             </button>
-          </form>
-        </div>
-
-        {toast.show && (
-          <div
-            className={`${styles["success-toast"]} ${toast.show ? styles.show : ""}`}
-            style={{ background: toast.isError ? "#c73e2f" : "#2b6e3c" }}
-          >
-            <i className="fas fa-check-circle"></i> <span>{toast.message}</span>
           </div>
-        )}
+        </form>
+      </div>
+
+      {toast.show && (
+        <div
+          className={`${styles["success-toast"]} ${toast.show ? styles.show : ""}`}
+          style={{ background: toast.isError ? "#c73e2f" : "#2b6e3c" }}
+        >
+          <i className="fas fa-check-circle"></i> <span>{toast.message}</span>
+        </div>
+      )}
       </div>
     </>
   );

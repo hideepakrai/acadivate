@@ -37,10 +37,8 @@ export const fetchNominationsThunk = createAsyncThunk<
 >("nominations/fetchAll", async (_, { rejectWithValue }) => {
   try {
     const response = await fetch("/api/nominations");
-    const data = await parseResponse<{ items?: NominationRecord[] }>(
-      response,
-      "Failed to fetch nominations",
-    );
+ 
+ const data = await response.json();
 
     return data.items ?? [];
   } catch (error) {
@@ -82,7 +80,7 @@ export const createNominationThunk = createAsyncThunk<
   { rejectValue: string }
 >("nominations/create", async (payload, { rejectWithValue }) => {
   try {
-    const response = await fetch("/api/order", {
+    const response = await fetch("/api/nominations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -90,15 +88,13 @@ export const createNominationThunk = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    // const data = await parseResponse<{
-    //   data?: NominationFormType;
-    //   success: boolean;
-    // }>(response, "Failed to create nomination");
 
+  
     const req = await response.json();
-
+    console.log("req",req)
+     console.log("order",req.item);
     if (req.success) {
-      return req.order;
+      return req.item;
     } else {
       throw new Error("Unable to create nomination");
     }
@@ -153,12 +149,8 @@ export const deleteNominationThunk = createAsyncThunk<
       },
     );
 
-    const data = await parseResponse<{ deletedId?: string }>(
-      response,
-      "Failed to delete nomination",
-    );
-
-    return data.deletedId ?? id;
+    const data= await response.json();
+    return data?.deletedId ?? id;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "Failed to delete nomination",

@@ -69,7 +69,8 @@ export const nominationSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchNominationsThunk.fulfilled, (state, action) => {
-        state.allNomination = action.payload;
+        const allData=action.payload
+        state.allNomination = allData;
         state.isFetchedNomination = true;
         state.isLoading = false;
         state.error = null;

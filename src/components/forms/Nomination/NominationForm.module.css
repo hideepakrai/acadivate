@@ -281,6 +281,67 @@
   box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2);
 }
 
+/* ── Action button row ─────────────────────────────── */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+
+.btn-submit {
+  flex: 1 1 0;
+  min-width: 160px;
+  background: linear-gradient(135deg, #0e7dc2 0%, #12a7cf 100%) !important;
+  box-shadow: 0 4px 18px rgba(18,167,207,0.35);
+}
+.btn-submit:hover {
+  background: linear-gradient(135deg, #0a6aaa 0%, #0e92b5 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(18,167,207,0.45) !important;
+}
+
+.btn-pdf {
+  flex: 1 1 0;
+  min-width: 160px;
+  background: linear-gradient(135deg, #1a568c 0%, #00a88e 100%) !important;
+  box-shadow: 0 4px 18px rgba(26,86,140,0.3);
+}
+.btn-pdf:hover {
+  background: linear-gradient(135deg, #164878 0%, #00917a 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(26,86,140,0.4) !important;
+}
+
+.btn-close {
+  flex: 0 0 auto;
+  min-width: 130px;
+  background: transparent !important;
+  color: var(--color-text-muted) !important;
+  border: 2px solid var(--color-border-light) !important;
+  box-shadow: none !important;
+}
+.btn-close:hover {
+  background: var(--color-bg-soft) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  transform: translateY(-1px);
+  box-shadow: none !important;
+}
+
+@media (max-width: 600px) {
+  .btn-row {
+    flex-direction: column;
+  }
+  .btn-submit,
+  .btn-pdf,
+  .btn-close {
+    width: 100%;
+    flex: none;
+  }
+}
+
 .mode-row label {
   font-weight: 500;
   text-transform: none;

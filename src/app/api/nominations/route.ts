@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import clientPromise from '@/src/lib/mongodb';
+import Razorpay from "razorpay";
+
+let instance = new Razorpay({
+  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 async function getCollection() {
   const client = await clientPromise;
@@ -64,11 +70,20 @@ async function GET(req: NextRequest) {
 
 async function POST(req: NextRequest) {
   try {
-    const collection = await getCollection();
     const payload = await req.json();
+    const collection = await getCollection();
+    const findLastReceipt = await collection.countDocuments();
+    const lastReceipt = findLastReceipt + 1;
+    const order = await instance.orders.create({
+      amount: payload.totalAmount,
+      currency: "INR",
+      receipt: `order_rcptid_${lastReceipt}`,
+    });
+
     const now = new Date().toISOString();
     const document = {
       ...payload,
+      order: order,
       createdAt: payload.createdAt ?? now,
       updatedAt: now,
     };
