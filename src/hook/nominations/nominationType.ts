@@ -24,6 +24,7 @@ export interface NominationFormType {
   researchProject?: string[];
   patentPolicyDocument?: string[];
   status?: string;
+  totalAmount?:number;
   // selectedAwards?: string[];
   academicAwards?: string[];
   startupAwards?: string[];

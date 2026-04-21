@@ -147,6 +147,7 @@ const NominationForm: React.FC = () => {
     email: "",
     website: "",
     gstin: "",
+    totalAmount:6990,
     paymentMode: "Online Banking",
     agreeTerms: false,
     researchPublication: [] as File[],
