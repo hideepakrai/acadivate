@@ -5,7 +5,8 @@ import { AppDispatch, RootState } from "@/src/hook/store"
 import { useEffect, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { cn } from '@/src/lib/utils'
-import { MapPin, Mail, Phone, Building2, User, Eye, Pencil, Trash2 } from 'lucide-react'
+import { MapPin, Mail, Phone, Building2, User, Eye, Pencil, Trash2, FileDown } from 'lucide-react'
+import { downloadNominationPDF } from './downloadNominationPDF'
 import { setCurrentNomination } from "@/src/hook/nominations/nominationSlice"
 import { useRouter } from "next/navigation"
 
@@ -18,8 +19,7 @@ const ShowNominationtable = () => {
    const router = useRouter()
     const handleView = (nomination: any) => {
         dispatch(setCurrentNomination(nomination))
-        // Logic for viewing (e.g., opening a modal) can be added here
-        console.log("View nomination:", nomination)
+        router.push('/nomination-form/view')
     }
 
     const handleEdit = (nomination: any) => {
@@ -33,6 +33,10 @@ const ShowNominationtable = () => {
         if (window.confirm("Are you sure you want to delete this nomination?")) {
             dispatch(deleteNominationThunk(id))
         }
+    }
+
+    const handleDownloadPDF = async (nomination: any) => {
+        await downloadNominationPDF(nomination);
     }
 
   return (
@@ -129,6 +133,13 @@ const ShowNominationtable = () => {
                                                     title="Edit"
                                                 >
                                                     <Pencil size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDownloadPDF(nomination)}
+                                                    className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                                                    title="Download PDF"
+                                                >
+                                                    <FileDown size={16} />
                                                 </button>
                                                 <button 
                                                     onClick={() => nomination._id && handleDelete(nomination._id)}
