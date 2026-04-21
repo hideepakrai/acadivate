@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { cn } from '@/src/lib/utils'
 import { MapPin, Mail, Phone, Building2, User, Eye, Pencil, Trash2 } from 'lucide-react'
 import { setCurrentNomination } from "@/src/hook/nominations/nominationSlice"
+import { useRouter } from "next/navigation"
 
 
 
@@ -14,7 +15,7 @@ const ShowNominationtable = () => {
 
     const dispatch = useDispatch<AppDispatch>()
     const { allNomination, isFetchedNomination } = useSelector((state: RootState) => state.nominations)
-
+   const router = useRouter()
     const handleView = (nomination: any) => {
         dispatch(setCurrentNomination(nomination))
         // Logic for viewing (e.g., opening a modal) can be added here
@@ -25,6 +26,7 @@ const ShowNominationtable = () => {
         dispatch(setCurrentNomination(nomination))
         // Logic for editing (e.g., opening a modal or navigating) can be added here
         console.log("Edit nomination:", nomination)
+        router.push(`/nomination-form/${nomination._id}`)
     }
 
     const handleDelete = (id: string) => {

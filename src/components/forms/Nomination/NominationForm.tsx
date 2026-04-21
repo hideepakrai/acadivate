@@ -3,67 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, Trash2 } from 'lucide-react';
 import styles from './NominationForm.module.css';
-import { AppDispatch } from '@/src/hook/store';
-import { useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '@/src/hook/store';
+import { useDispatch, useSelector } from 'react-redux';
 import { createNominationThunk } from '@/src/hook/nominations/nominationThunk';
 import { NominationFormType } from '@/src/hook/nominations/nominationType';
+import { useRouter } from 'next/navigation';
+import { setCurrentNomination } from '@/src/hook/nominations/nominationSlice';
+import { academicAwards, entrepreneurAwards, riseAwards, startupAwards } from './util';
+import Script from 'next/script';
 
-const academicAwards = [
-  "Life Time Achievement Award (above 55 Years of Age)", "Hon. Fellowship (FAFSRI) (Below 40 Years of Age)", "Eminent Scientist award",
-  "Senior Scientist Award (Above 45 years of age)", "Scientist Associate Award Research", "Young Scientist Award in Agriculture Science",
-  "Young Scientist Award in Chemical Science", "Young Scientist Award in Animal Husbandry", "Young Scientist Award in Animal Science",
-  "Young Scientist Award in Fisheries Sciences", "Young Scientist Award in Plant Science", "Young Scientist Award in Agriculture Outstanding Achievement Award",
-  "Young Scientist Award in Social Sciences", "Innovative Biologist Award for Wild Life/ Biodiversity Conservation", "Young Scientist Award for Humanistic Studies",
-  "Best Academician Award (Humanities/ Commerce and Managements/ Interdisciplinary Studies)", "Excellence in Extension Scientist Award",
-  "Outstanding Extension Professional/Agriculture Scientist/ Social Services Award", "Excellence in Teaching Award (Humanities/ Commerce and Managements/ Interdisciplinary Studies.)",
-  "Excellence in Research Award (Humanities/ Commerce and Managements/ Interdisciplinary Studies.)",
-  "Distinguished Scientist Award/Distinguished Service Award / Distinguished Teacher Award (Crop, Plant Protection, Horticulture, Fisheries, Home Science, Social Science, Animal Science, Life Science etc.)",
-  "Technological Innovations Award", "Young Woman Scientist Award", "Young Botanist/Zoologist/Scientist Award (below 30 years of age; mainly for research scholar)",
-  "Excellence in Research Award for Humanistic Studies", "Young Professional Award (Humanities/ Commerce and Managements/ Interdisciplinary Studies)",
-  "Young Environmentalist Award", "Best Research Scholar Award"
-];
-
-const startupAwards = [
-  "Digital / Online Start-up", "eRetail Start up of the Year", "Best HR Tech Start up of the Year", "B2B Start up of the Year",
-  "Tech Startup of the Year", "On-Demand Delivery Startup of the year", "Fashion Startup of the year", "Social Commerce Startup of the Year",
-  "Agritech Startup of the Year", "Fintech Startup of the Year", "Health Tech Startup of the Year", "Best Drone Tech Start Up of the Year",
-  "Cloud Startup of the Year", "Networking Startup of the Year", "InsureTech Startup of the Year", "Proptech Startup of the Year",
-  "Media/Entertainment Startup of the Year", "SpaceTech Startup of the Year", "Edtech Startup of the Year", "Accelerator of the Year",
-  "Innovative Start-up of the Year", "Home or Craft-based Startup", "Gaming app of the year", "Emerging Start-up",
-  "Mobility Start-up of the year", "Energy Start-up of the Year", "Logistics /Fulfilment Start-up of the Year", "Food Startup",
-  "Beverage Startup", "Beauty Startup", "Wellness Startup", "Best healthcare startup", "Best Education Startup Of The Year",
-  "Blockchain Innovator of the year", "Best NFT Platform of the Year", "Metaverse Startup of the Year", "CEO of the Year (Large Business)",
-  "Bootstrapped Business Of The Year", "Retail Startup Of The Year", "Travel Startup of the year", "Real Estate Startup Of The Year",
-  "Startup Leader Of The Year", "Founder Of The Year", "Creative Entrepreneur Of The Year - Start-up", "Best Social Impact Startup",
-  "Gifting startup of the year", "Clean Tech / Green Startup of the Year"
-];
-
-const riseAwards = [
-  "Most Enterprising Business", "Best Customer Service", "Business Innovation", "Best Financial Performance", "Best Use of Technology",
-  "Business Transformation", "Cross Border Business Growth", "National Quality Award", "Best Workplace of the Year",
-  "Most Socially Responsible Company of the Year", "Best Digital Transformation Award", "Best CSR Initiative"
-];
-
-const entrepreneurAwards = [
-  "Celebrity Entrepreneur of the Year", "Entrepreneur of the Year (Consumer Business)", "Acharya of the Year / Business Mentor of the Year",
-  "Entrepreneur of the Year (Innovation in Financial Services)", "Dynamic Entrepreneur of the Year (Business Transformation)",
-  "Entrepreneur of the Year (Innovation in Technology)", "Professional Entrepreneur of the Year", "Family Entrepreneur of the Year",
-  "Entrepreneur of the Year ( Media & Entertainment )", "Social Entrepreneur of the Year", "Creative Entrepreneur of the Year",
-  "Young Entrepreneur of the Year", "Restoration Entrepreneur of the Year", "Serial Entrepreneur of the Year", "Student Entrepreneur of the Year",
-  "Intrapreneur of the Year", "Micro /Small online business Entrepreneur of the year", "Green Entrepreneur of the Year", "Entrepreneur of the Year",
-  "Woman Entrepreneur of the Year", "Lifetime Achievement", "Entrepreneur of the Year - Real Estate", "Venture Capitalist of the Year",
-  "Angel Investor of the Year", "Entrepreneur of the Year in Trading Business", "Entrepreneur of the Year in Service Business",
-  "Entrepreneur of the Year in Product or Manufacturing Business"
-];
 
 const BASE_FEE = 5500;
 const GST_RATE = 0.18;
 const HANDLING_PER_CAT = 500;
- console.log("academicAwards",academicAwards)
+
 
 const NominationForm: React.FC = () => {
 
-
+  const router=useRouter()
+  const currentNomination = useSelector((state: RootState) => state.nominations.currentNomination);
   const [formData, setFormData] = useState({
     orgName: '',
     promoter: '',
@@ -75,6 +33,7 @@ const NominationForm: React.FC = () => {
     email: '',
     website: '',
     gstin: '',
+    totalAmount:6990,
     selectedAwards:[],
     paymentMode: 'Online Banking',
     agreeTerms: false,
@@ -111,7 +70,7 @@ const NominationForm: React.FC = () => {
   };
 
 
-  console.log("formData---",formData)
+
   // Delete a file from a specific field
   const handleDeleteFile = (field: keyof typeof formData, index: number) => {
     setFormData(prev => ({
@@ -129,6 +88,35 @@ const NominationForm: React.FC = () => {
     }));
   };
 
+  // Pre-fill form when currentNomination is loaded from Redux
+  useEffect(() => {
+    if (currentNomination) {
+      setFormData(prev => ({
+        ...prev,
+        orgName: currentNomination.orgName ?? '',
+        promoter: currentNomination.promoter ?? '',
+        ownership: currentNomination.ownership ?? '',
+        address: currentNomination.address ?? '',
+        mobile: currentNomination.mobile ?? '',
+        state: currentNomination.state ?? '',
+        city: currentNomination.city ?? '',
+        email: currentNomination.email ?? '',
+        website: currentNomination.website ?? '',
+        gstin: currentNomination.gstin ?? '',
+        paymentMode: currentNomination.paymentMode ?? 'Online Banking',
+        agreeTerms: !!currentNomination.agreeTerms,
+        status: currentNomination.status ?? 'pending',
+      }));
+      setSelectedAwards({
+        academic: currentNomination.academicAwards ?? [],
+        startup: currentNomination.startupAwards ?? [],
+        rise: currentNomination.riseAwards ?? [],
+        entrepreneur: currentNomination.entrepreneurAwards ?? [],
+      });
+    }
+  }, [currentNomination]);
+
+  // Recalculate payable amount whenever selected awards change
   useEffect(() => {
     const selectedCount = Object.values(selectedAwards).flat().length;
     if (selectedCount === 0) {
@@ -147,6 +135,47 @@ const NominationForm: React.FC = () => {
     setTimeout(() => setToast({ show: false, message: '', isError: false }), 3500);
   };
 
+
+  const paymentHandler=async(data:NominationFormType)=>{
+     let options: any = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+      amount: `${data?.totalAmount??6990}`, // Amount is in currency subunits.
+      currency: "INR",
+      name: "Acadivate", //your business name
+      description: "Test Transaction",
+      image: "https://acadivate.com/logo.png",
+      order_id: data._id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+      handler: function (response) {
+        alert(response.razorpay_payment_id);
+        alert(response.razorpay_order_id);
+        alert(response.razorpay_signature);
+      },
+      prefill: {
+        name: data.promoter, //your customer's name
+        email: data.email,
+        contact: data.mobile, //Provide the customer's phone number for better conversion rates
+      },
+      notes: {
+        address: data.address,
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    var rzp1: any = new (window as any).Razorpay(options);
+    console.log("rzp1",rzp1)
+    rzp1.on("payment.failed", function (response) {
+      alert(response.error.code);
+      alert(response.error.description);
+      alert(response.error.source);
+      alert(response.error.step);
+      alert(response.error.reason);
+      alert(response.error.metadata.order_id);
+      alert(response.error.metadata.payment_id);
+    });
+    rzp1.open();
+  }
   const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     debugger
@@ -199,17 +228,57 @@ const NominationForm: React.FC = () => {
       patentPolicyDocument: [],
       status: "pending",
     };
-    console.log('Nomination Submitted:', formDataObj);
+  
 
     const responce= await dispatch(createNominationThunk(formDataObj)).unwrap()
-    console.log("respeoinse forem national", responce)
-    if(responce.status){
+    console.log("response submitted", responce)
+    if(responce._id){
+      paymentHandler(responce)
+      //  uploadFiles(
+      //   {
+      //     researchPublication:formData.researchPublication,
+      //     bookPublication:formData.bookPublication,
+      //     researchProject:formData.researchProject,
+      //     patentPolicyDocument:formData.patentPolicyDocument,
+      //     pathName:`/nomination/${responce._id}`
+      //   }
+      // )
       const totalCount = Object.values(selectedAwards).flat().length;
       showToast(`✓ Nomination submitted! Selected ${totalCount} categories. Total: ₹${payableAmount.toLocaleString('en-IN')}`, false);
     }else{
       showToast(`✗ Nomination submission failed!`, true);
     }
   };
+
+ const uploadFiles = async (data: {
+  researchPublication: File[];
+  bookPublication: File[];
+  researchProject: File[];
+  patentPolicyDocument: File[];
+  pathName: string;
+}) => {
+  const formData = new FormData();
+
+  // Append the pathName to the formData
+  formData.append('pathName', data.pathName);
+
+  // Loop through each category and append files to formData
+  Object.entries(data).forEach(([key, value]) => {
+    if (Array.isArray(value)) { // Check if the value is an array of files
+      value.forEach((file: File) => {
+        formData.append(key, file); // same key, multiple files
+      });
+    }
+  });
+
+  const res = await fetch("/api/uploadfile", {
+    method: "POST",
+    body: formData,
+  });
+
+  return await res.json();
+};
+
 
   const renderAwardSection = (title: string, icon: string, awards: string[], category: keyof typeof selectedAwards) => (
     <div className={styles['categories-section']}>
@@ -230,8 +299,16 @@ const NominationForm: React.FC = () => {
       </div>
     </div>
   );
-
+   const handleClose=()=>{
+    dispatch(setCurrentNomination(null))
+    router.back()
+   }
   return (
+    <>
+     <Script
+           src="https://checkout.razorpay.com/v1/checkout.js"
+           strategy="beforeInteractive"
+         />
     <div className={styles.container}>
       <div className={styles.hero}>
         <div className={styles['hero-badge']}><i className="fas fa-trophy"></i> Nominations Are Now Open</div>
@@ -419,7 +496,7 @@ const NominationForm: React.FC = () => {
 
           <button type="submit"><i className="fas fa-paper-plane"></i> Submit Nominationfff</button>
 
-          {/* <button type="submit" onClick={onClose}><i className="fas fa-paper-plane"></i> Close</button> */}
+          <button type="submit" onClick={handleClose}><i className="fas fa-paper-plane"></i> Close</button>
         </form>
       </div>
 
@@ -429,6 +506,7 @@ const NominationForm: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
