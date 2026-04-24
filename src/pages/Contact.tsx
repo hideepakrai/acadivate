@@ -155,6 +155,32 @@ const ContactMain = () => {
 
       if (!response.ok) throw new Error('Failed to submit enquiry');
 
+      // Send Email Notification
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: formData.institution || 'Individual Enquiry',
+            promoter: formData.fullName,
+            email: formData.email,
+            mobile: formData.phoneNumber,
+            ownership: 'N/A',
+            city: 'N/A',
+            state: 'N/A',
+            totalAmount: 0,
+            academicAwards: [formData.enquiryType],
+            startupAwards: [],
+            riseAwards: [],
+            entrepreneurAwards: [],
+            message: formData.message,
+            formType: 'Contact Enquiry'
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send contact notification email:', emailError);
+      }
+
       toast.success('Enquiry Submitted', {
         description: 'Thank you for reaching out! We will get back to you soon.',
       });

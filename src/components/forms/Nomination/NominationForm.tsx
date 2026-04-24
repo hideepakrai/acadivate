@@ -267,7 +267,35 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
             pathName: `/nomination-form/${response._id}`,
           });
           if (uploadResult.success) {
-            await dispatch(updateNominationThunk({ ...response, ...uploadResult.data })).unwrap();
+            const updatedNomination = { ...response, ...uploadResult.data };
+            await dispatch(updateNominationThunk(updatedNomination)).unwrap();
+            
+            // Send Email Notification
+            setLoadingStep("sending_email");
+            try {
+              const emailRes = await fetch("/api/send-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ...updatedNomination,
+                  academicAwards: selectedAwards.academic,
+                  startupAwards: selectedAwards.startup,
+                  riseAwards: selectedAwards.rise,
+                  entrepreneurAwards: selectedAwards.entrepreneur,
+                }),
+              });
+              const emailData = await emailRes.json();
+              if (emailData.success) {
+                console.log("Email sent successfully");
+              } else {
+                console.error("Email API returned error:", emailData.error);
+                showToast("Nomination saved, but email notification failed.", true);
+              }
+            } catch (emailError) {
+              console.error("Failed to send notification email:", emailError);
+              showToast("Network error while sending email notification.", true);
+            }
+
             showToast(isEditMode ? "Updated successfully!" : "Submitted successfully!");
           } else {
             showToast("Data saved, but file upload failed.", true);
