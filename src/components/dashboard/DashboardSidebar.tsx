@@ -41,9 +41,9 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
   const isAdmin = isMounted && (user?.role === 'admin' || user?.role === 'SUPERADMIN');
 
   const nonAdminNavItems = [
+    { label: 'Profile', href: '/dashboard/userAccount', icon: User },
     { label: 'Events', href: '/dashboard/events', icon: CalendarRange },
     { label: 'Nomination', href: '/dashboard/nominations', icon: BadgeCheck },
-    { label: 'Profile', href: '/dashboard/userAccount', icon: User },
     { label: 'Payments', href: '/dashboard/payments', icon: CreditCard },
     { label: 'Files', href: '/dashboard/files', icon: FileText },
   ];
@@ -105,10 +105,59 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
                         <span className="text-sm font-semibold">Contact Form</span>
                       </span>
                     </Link>
+
+                    {/* Quick Access Modules for Admin */}
+                    <Link
+                      href="/dashboard/userAccount"
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                        currentPath === '/dashboard/userAccount'
+                          ? 'bg-linear-to-r from-primary-deep via-primary-dark to-primary text-white shadow-sh-md'
+                          : 'text-navy hover:bg-bg-soft'
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <User size={18} className={currentPath === '/dashboard/userAccount' ? 'text-gold-3' : 'text-primary-dark'} />
+                        <span className="text-sm font-semibold">Profile</span>
+                      </span>
+                    </Link>
+
+                    <Link
+                      href="/dashboard/payments"
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                        currentPath === '/dashboard/payments'
+                          ? 'bg-linear-to-r from-primary-deep via-primary-dark to-primary text-white shadow-sh-md'
+                          : 'text-navy hover:bg-bg-soft'
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <CreditCard size={18} className={currentPath === '/dashboard/payments' ? 'text-gold-3' : 'text-primary-dark'} />
+                        <span className="text-sm font-semibold">Payments</span>
+                      </span>
+                    </Link>
+
+                    <Link
+                      href="/dashboard/files"
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                        currentPath === '/dashboard/files'
+                          ? 'bg-linear-to-r from-primary-deep via-primary-dark to-primary text-white shadow-sh-md'
+                          : 'text-navy hover:bg-bg-soft'
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <FileText size={18} className={currentPath === '/dashboard/files' ? 'text-gold-3' : 'text-primary-dark'} />
+                        <span className="text-sm font-semibold">Files</span>
+                      </span>
+                    </Link>
                   </>
                 )}
 
-                {(isAdmin ? dashboardNavItems : nonAdminNavItems).map((link) => {
+                {(isAdmin 
+                  ? dashboardNavItems.filter(item => item.href !== '/dashboard/payments' && item.href !== '/dashboard/files') 
+                  : nonAdminNavItems
+                ).map((link) => {
                   const active = isActive(link.href);
  
                   return (
@@ -192,7 +241,7 @@ export function DashboardSidebar({ currentPath }: { currentPath: string }) {
             </div>
             <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-sm font-bold text-navy">{isMounted && user?.userName ? user.userName : 'Admin'}</p>
-              <p className="truncate text-[11px] font-medium text-text-subtle">admin@nestcraft.com</p>
+              <p className="truncate text-[11px] font-medium text-text-subtle">{isMounted && user?.email ? user.email : 'admin@nestcraft.com'}</p>
             </div>
             <ChevronUp 
               size={16} 

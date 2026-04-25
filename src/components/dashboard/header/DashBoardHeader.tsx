@@ -8,7 +8,7 @@ import { NominationFormType } from '@/src/hook/nominations/nominationType';
 
 interface DashBoardHeaderProps {
   config: DashboardModuleConfig;
-  records: DashboardModuleRow[] | NominationFormType[];
+  records: any[];
   openForm: () => void;
   isFormOpen: boolean;
   formId: string;

@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       user: {
         userId: userWithoutPassword._id,
         userName: userWithoutPassword.userName,
+        email: userWithoutPassword.email,
         role: userWithoutPassword.role,
       },
       status: 200,

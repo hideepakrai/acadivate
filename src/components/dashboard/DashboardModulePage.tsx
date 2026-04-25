@@ -48,6 +48,7 @@ export const accentClasses: Record<DashboardAccent, string> = {
   gold: 'from-gold via-gold-2 to-gold-3',
   sage: 'from-sage via-primary-dark to-primary',
   crimson: 'from-crimson via-[#cf4d4d] to-[#8f1b1b]',
+  blue: 'from-navy via-navy/90 to-primary',
 };
 
 
@@ -56,7 +57,8 @@ type DraftValue = string | string[];
 
 export function DashboardModulePage({ moduleId }: { moduleId: DashboardModuleId }) {
   const config = dashboardModuleList.find((module) => module.id === moduleId) ?? dashboardModuleList[0];
-  
+
+    const user= useSelector((state:RootState)=>state.auth.user)
   const {allNomination,isFetchedNomination}=useSelector((state:RootState)=>state.nominations)
   const [draft, setDraft] = useState<Record<string, DraftValue>>(() => buildEmptyDraft(config.fields));
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export function DashboardModulePage({ moduleId }: { moduleId: DashboardModuleId 
     (state: RootState) => selectDashboardModuleSnapshot(state, moduleId),
     shallowEqual
   );
-  const user= useSelector((state:RootState)=>state.auth.user)
+
   const records = moduleSnapshot.records.map((record) => moduleCrud.mapRecordToRow(record));
   const summaryCards = config.buildSummary(records);
   const scrollToForm = () => {
@@ -313,7 +315,9 @@ export function DashboardModulePage({ moduleId }: { moduleId: DashboardModuleId 
 
       </article>
 
-      {config.fields.length > 0 && (
+      {config.fields.length > 0 &&
+      user?.role=="admin"&&
+      (
         <DashboardModuleForm
           config={config}
           formId={formId}
