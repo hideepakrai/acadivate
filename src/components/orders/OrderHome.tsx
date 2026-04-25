@@ -13,6 +13,9 @@ import { getDashboardModuleCrud } from '../dashboard/dashboardModuleRegistry';
 import { fetchOrdersThunk } from '@/src/hook/orders/orderThunk';
 import { fetchNominationsThunk } from '@/src/hook/nominations/nominationThunk';
 import ShowNominationtable from '../forms/Nomination/ShowNominationtable';
+import OrderTable from './OrderTable';
+import { GetAllOrders } from './GetAllOrders';
+import GetAllNomination from '../forms/Nomination/GetAllNomination';
 
 
 type props = {
@@ -35,26 +38,26 @@ export default function OrderHome({ moduleId }: props) {
     return allNomination.map((item) => item?._id).filter(Boolean) as string[];
   }, [allNomination])
 
-  // Fetch Nominations first
-  useEffect(() => {
-    if (!isFetchedNomination && !isApiNomination.current && user) {
-      isApiNomination.current = true
-      dispatch(fetchNominationsThunk({ userId: user.userId, role: user.role }))
-    }
-  }, [isFetchedNomination, user, dispatch])
+  // // Fetch Nominations first
+  // useEffect(() => {
+  //   if (!isFetchedNomination && !isApiNomination.current && user) {
+  //     isApiNomination.current = true
+  //     dispatch(fetchNominationsThunk({ userId: user.userId, role: user.role }))
+  //   }
+  // }, [isFetchedNomination, user, dispatch])
 
   // Fetch Orders once nominations are available
-  useEffect(() => {
-    if (user && 
-        user.role &&
-        allnominationId.length > 0 &&
-        !isFetchedOrder &&
-        !isApiOrder.current
-    ) {
-      isApiOrder.current = true
-      dispatch(fetchOrdersThunk({role: user.role as string, ids: allnominationId}));
-    }
-  }, [user, isFetchedOrder, allnominationId, dispatch])
+  // useEffect(() => {
+  //   if (user && 
+  //       user.role &&
+  //       allnominationId.length > 0 &&
+  //       !isFetchedOrder &&
+  //       !isApiOrder.current
+  //   ) {
+  //     isApiOrder.current = true
+  //     dispatch(fetchOrdersThunk({role: user.role as string, ids: allnominationId}));
+  //   }
+  // }, [user, isFetchedOrder, allnominationId, dispatch])
 
   const records = useMemo(() => {
     return allOrders.map((record) => moduleCrud.mapRecordToRow(record));
@@ -66,7 +69,11 @@ export default function OrderHome({ moduleId }: props) {
     toast.error('No Form is available for Order Module');
   }
 
+
   return (
+    <>
+    <GetAllNomination/>
+    <GetAllOrders/>
     <section className="space-y-6">
         <article
           className={cn(
@@ -94,18 +101,14 @@ export default function OrderHome({ moduleId }: props) {
         </article>
   
   
-        <DashboardModuleList
-          config={config}
-          tableId={''}
-          records={records}
-          editingId={null}
-          onEdit={()=>{}}
-          onDelete={()=>{}}
-          onAddMore={handleFormOpen}
+        <OrderTable 
+          allOrders={allOrders} 
+          loading={!isFetchedOrder} 
         />
         
-        <ShowNominationtable />
+        {/* <ShowNominationtable /> */}
   
       </section>
+      </>
   )
 }

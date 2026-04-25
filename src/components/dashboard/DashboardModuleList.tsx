@@ -118,22 +118,22 @@ export function DashboardModuleList({
                           <Eye size={15} />
                         </Link>
                       )}
-                      <button
+                      {<button
                         type="button"
                         onClick={() => onEdit(row)}
                         title="Edit"
                         className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-xl border border-border-light bg-bg-soft text-navy transition hover:border-primary hover:text-primary"
                       >
                         <PencilLine size={15} />
-                      </button>
-                      <button
+                      </button>}
+                      {<button
                         type="button"
                         onClick={() => onDelete(row)}
                         title="Delete"
                         className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-xl border border-border-light bg-white text-crimson transition hover:border-crimson hover:bg-crimson-2"
                       >
                         <Trash2 size={15} />
-                      </button>
+                      </button>}
                     </div>
                   </div>
                 ))

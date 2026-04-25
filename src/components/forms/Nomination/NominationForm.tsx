@@ -22,6 +22,7 @@ import {
   Building
 } from "lucide-react";
 import { downloadNominationPDF } from './downloadNominationPDF';
+import { downloadFile } from '@/src/hook/files/fileUtil';
 import styles from './NominationForm.module.css';
 import { AppDispatch, RootState } from '@/src/hook/store';
 import { useDispatch, useSelector } from 'react-redux';
@@ -63,10 +64,10 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
     selectedAwards: [],
     paymentMode: "Online Banking",
     agreeTerms: false,
-    researchPublication: [] as File[],
-    bookPublication: [] as File[],
-    researchProject: [] as File[],
-    patentPolicyDocument: [] as File[],
+    researchPublication: [] as (File | string)[],
+    bookPublication: [] as (File | string)[],
+    researchProject: [] as (File | string)[],
+    patentPolicyDocument: [] as (File | string)[],
     status: "pending",
   });
 
@@ -98,6 +99,10 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
         gstin: currentNomination.gstin ?? "",
         paymentMode: currentNomination.paymentMode ?? "Online Banking",
         agreeTerms: !!currentNomination.agreeTerms,
+        researchPublication: currentNomination.researchPublication ?? [],
+        bookPublication: currentNomination.bookPublication ?? [],
+        researchProject: currentNomination.researchProject ?? [],
+        patentPolicyDocument: currentNomination.patentPolicyDocument ?? [],
         status: currentNomination.status ?? "pending",
       }));
       setSelectedAwards({
@@ -144,7 +149,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
   const handleDeleteFile = (field: keyof typeof formData, index: number) => {
     setFormData(prev => ({
       ...prev,
-      [field]: (prev[field] as File[]).filter((_, i) => i !== index)
+      [field]: (prev[field] as any[]).filter((_, i) => i !== index)
     }));
   };
 
@@ -174,9 +179,11 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
               formId: data._id,
               status: "success",
             };
+            console.log(" paymemnnt done--->",response)
+            console.log(" order data--->",orderData)
             const result = await saveOrderData(orderData);
 
-            console.log(" order created successfully result--->",result)
+            console.log(" result---> save order data",result)
             if (result.success) {
               showToast("Payment successful");
               resolve({ success: true });
@@ -210,6 +217,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
   const saveOrderData = async (orderData: OrderType) => {
     try {
       const response = await dispatch(createOrderThunk(orderData)).unwrap();
+      console.log("resposne---> create order data",response)
       return { success: true, item: response };
     } catch (err) {
       console.error("Error saving order data:", err);
@@ -243,10 +251,10 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
         startupAwards: selectedAwards.startup,
         riseAwards: selectedAwards.rise,
         entrepreneurAwards: selectedAwards.entrepreneur,
-        researchPublication: [],
-        bookPublication: [],
-        researchProject: [],
-        patentPolicyDocument: [],
+        researchPublication: formData.researchPublication.filter(f => typeof f === 'string') as string[],
+        bookPublication: formData.bookPublication.filter(f => typeof f === 'string') as string[],
+        researchProject: formData.researchProject.filter(f => typeof f === 'string') as string[],
+        patentPolicyDocument: formData.patentPolicyDocument.filter(f => typeof f === 'string') as string[],
         status: isEditMode ? currentNomination?.status : "pending",
         totalAmount: payableAmount,
         submittedById:user?.userId
@@ -258,36 +266,52 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
       } else {
         response = await dispatch(createNominationThunk(formDataObj)).unwrap();
       }
-      console.log("response--->",response)
+      console.log("response--->create nomination",response)
 
       if (response._id) {
         let paymentSuccessful = true;
         if (!isEditMode) {
           setLoadingStep("paying");
+          console.log("response--->pay ment started")
           const paymentResult = await paymentHandler(response);
+          console.log("response--->pay ment completed")
           paymentSuccessful = paymentResult.success;
         }
         if (paymentSuccessful) {
           setLoadingStep("uploading");
+       
           const uploadResult = await uploadFiles({
-            researchPublication: formData.researchPublication,
-            bookPublication: formData.bookPublication,
-            researchProject: formData.researchProject,
-            patentPolicyDocument: formData.patentPolicyDocument,
+            researchPublication: formData.researchPublication.filter(f => f instanceof File) as File[],
+            bookPublication: formData.bookPublication.filter(f => f instanceof File) as File[],
+            researchProject: formData.researchProject.filter(f => f instanceof File) as File[],
+            patentPolicyDocument: formData.patentPolicyDocument.filter(f => f instanceof File) as File[],
             pathName: `/nomination-form/${response._id}`,
           });
-          console.log("uploadResult--->",uploadResult)
+       
           if (uploadResult.success) {
-            const updatedNomination = { ...response, ...uploadResult.data };
-            console.log("updatedNomination",updatedNomination)
-           const responseUpdate=  await dispatch(updateNominationThunk(updatedNomination)).unwrap();
-            console.log("responseUpdate",responseUpdate)
-            // Send Email Notification
-           const responseMail= await sendEmailNotification(updatedNomination);
-             console.log("responseMail",responseMail)
-            showToast(isEditMode ? "Updated successfully!" : "Submitted successfully!");
+            // Merge existing strings with new uploaded URLs
+            const mergedFiles: any = {};
+            ['researchPublication', 'bookPublication', 'researchProject', 'patentPolicyDocument'].forEach(key => {
+              const fieldValue = formData[key as keyof typeof formData];
+              const existing = Array.isArray(fieldValue) ? fieldValue.filter(f => typeof f === 'string') : [];
+              const newlyUploaded = uploadResult.data[key] || [];
+              mergedFiles[key] = [...existing, ...newlyUploaded];
+            });
 
-            router.back()
+            const updatedNomination = { ...response, ...mergedFiles };
+         
+            
+          
+            const responseUpdate = await dispatch(updateNominationThunk(updatedNomination)).unwrap();
+          
+
+            // Send Email Notification
+      
+            const responseMail = await sendEmailNotification(updatedNomination);
+       
+            
+            showToast(isEditMode ? "Updated successfully!" : "Submitted successfully!");
+            router.back();
           } else {
             showToast("Data saved, but file upload failed.", true);
           }
@@ -304,7 +328,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
   };
 
   const uploadFiles = async (data: any) => {
-    debugger
+    console.log("Uploading files to:", data.pathName);
     const fd = new FormData();
     fd.append("pathName", data.pathName);
     Object.entries(data).forEach(([key, value]) => {
@@ -312,12 +336,12 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
     });
     const res = await fetch("/api/uploadfile", { method: "POST", body: fd });
     const resposneUploadd= await res.json();
-    console.log("resposneUploadd",resposneUploadd)
+  
     return resposneUploadd;
   };
 
   const sendEmailNotification = async (updatedNomination: any) => {
-    debugger
+ 
     setLoadingStep("sending_email");
     try {
       const emailRes = await fetch("/api/send-email", {
@@ -333,9 +357,9 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
       });
       const emailData = await emailRes.json();
       if (emailData.success) {
-        console.log("Email sent successfully");
+      
       } else {
-        console.error("Email API returned error:", emailData.error);
+      
         showToast("Nomination saved, but email notification failed.", true);
       }
     } catch (emailError) {
@@ -378,6 +402,52 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
     </div>
   );
 
+  const NominationFileItem = ({ file, idx, field, label }: { file: File | string, idx: number, field: keyof typeof formData, label: string }) => {
+    const isExisting = typeof file === 'string';
+    const fileName = isExisting ? (file as string).split('/').pop() : (file as File).name;
+    const fileUrl = isExisting ? (file as string) : URL.createObjectURL(file as File);
+    const [downloading, setDownloading] = useState(false);
+
+    const onDownload = async () => {
+      if (isExisting) {
+        setDownloading(true);
+        try {
+          await downloadFile(file as string, `${label}_${idx + 1}.pdf`);
+        } finally {
+          setDownloading(false);
+        }
+      }
+    };
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+        <span style={{ fontSize: '0.85rem', color: '#334155', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {fileName}
+        </span>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {isExisting ? (
+            downloading ? (
+              <Loader2 size={16} className="animate-spin text-primary" />
+            ) : (
+              <Download 
+                size={16} 
+                style={{ cursor: 'pointer', color: '#2563eb' }} 
+                onClick={onDownload} 
+              />
+            )
+          ) : (
+            <Eye 
+              size={16} 
+              style={{ cursor: 'pointer', color: '#64748b' }} 
+              onClick={() => window.open(fileUrl)} 
+            />
+          )}
+          {!readOnly && <Trash2 size={16} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={() => handleDeleteFile(field, idx)} />}
+        </div>
+      </div>
+    );
+  };
+
   const renderFileField = (label: string, field: keyof typeof formData) => (
     <div className={styles["input-group"]}>
       <label>{label} (PDF Only)</label>
@@ -389,16 +459,10 @@ const NominationForm: React.FC<NominationFormProps> = ({ readOnly = false }) => 
         onChange={handleInputChange}
         disabled={readOnly}
       />
-      {(formData[field] as File[]).length > 0 && (
+      {(formData[field] as (File | string)[]).length > 0 && (
         <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {(formData[field] as File[]).map((file, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.85rem', color: '#334155', maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <Eye size={16} style={{ cursor: 'pointer', color: '#64748b' }} onClick={() => window.open(URL.createObjectURL(file))} />
-                {!readOnly && <Trash2 size={16} style={{ cursor: 'pointer', color: '#ef4444' }} onClick={() => handleDeleteFile(field, idx)} />}
-              </div>
-            </div>
+          {(formData[field] as (File | string)[]).map((file, idx) => (
+            <NominationFileItem key={idx} file={file} idx={idx} field={field} label={label} />
           ))}
         </div>
       )}

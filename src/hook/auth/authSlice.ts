@@ -3,6 +3,7 @@ import { loginThunk } from './authThunks';
 
 interface User {
   userName?: string;
+  email?: string;
   password?: string;
   role?: string;
   userId?: string;

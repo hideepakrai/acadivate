@@ -38,4 +38,3 @@ pnpm-debug.log*
 next-env.d.ts
 
 # uploads
-/public/uploads/

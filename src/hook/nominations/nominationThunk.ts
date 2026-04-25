@@ -16,14 +16,14 @@ type ApiResponse<T> = {
 };
 
 async function parseResponse<T>(
-  response: any,
+  response: Response,
   fallbackMessage: string,
 ): Promise<T> {
   const data = (await response
     .json()
     .catch(() => null)) as ApiResponse<T> | null;
 
-  if (!response.success) {
+  if (!response.ok) {
     throw new Error(data?.error || data?.message || fallbackMessage);
   }
 

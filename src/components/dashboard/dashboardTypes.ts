@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
 
-export type DashboardModuleId = 'events' | 'awards' | 'nominations' | 'rankings' | 'leads' | 'categories' | 'registrations' | 'sliders' | 'forms' | 'payments';
+export type DashboardModuleId = 'events' | 'awards' | 'nominations' | 'rankings' | 'leads' | 'categories' | 'registrations' | 'sliders' | 'forms' | 'payments' | 'files';
 
 export type DashboardStatusTone = 'neutral' | 'success' | 'warning' | 'danger';
 
-export type DashboardAccent = 'primary' | 'gold' | 'sage' | 'crimson';
+export type DashboardAccent = 'primary' | 'gold' | 'sage' | 'crimson' | 'blue';
 
 export type DashboardModuleFieldType = 'text' | 'email' | 'date' | 'number' | 'select' | 'textarea' | 'file';
 

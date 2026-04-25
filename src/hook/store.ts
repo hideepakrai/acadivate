@@ -12,6 +12,7 @@ import registrationReducer from './registrations/registrationSlice';
 import sliderReducer from './sliders/sliderSlice';
 import dashboardStatsReducer from './dashboard/dashboardStatsSlice';
 import orderReducer from './orders/orderSlice';
+import fileReducer from './files/fileSlice';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     sliders: sliderReducer,
     dashboardStats: dashboardStatsReducer,
     orders: orderReducer,
+    files: fileReducer,
   },
 });
 

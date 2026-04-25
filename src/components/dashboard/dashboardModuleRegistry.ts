@@ -220,6 +220,8 @@ function mapOrderRecordToRow(record: AnyRecord): DashboardModuleRow {
       orderId: String(record.orderId ?? ''),
       amount: String(record.amount ?? '0'),
       status: String(record.status ?? 'pending'),
+      paymentMethod: String(record.paymentMethod ?? 'Offline Payment'),
+      createdAt: String(record.createdAt ?? ''),
     },
   };
 }

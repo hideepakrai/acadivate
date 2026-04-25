@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import FileManager from '@/src/components/files/FileManager';
 
-import NominationHome from '@/src/components/forms/Nomination/NominationHome';
-
-export default function Page() {
+export default function FilesPage() {
   return (
     <Suspense
       fallback={
@@ -12,7 +11,7 @@ export default function Page() {
         </div>
       }
     >
-   <NominationHome/>
+      <FileManager />
     </Suspense>
   );
 }
